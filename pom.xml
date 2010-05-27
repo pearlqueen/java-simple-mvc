@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dmurph.mvc</groupId>
 	<artifactId>JavaSimpleMVC</artifactId>
-	<version>0.1.2-SNAPSHOT</version>
+	<version>0.1.1-SNAPSHOT</version>
 	<name>java-simple-mvc</name>
 	<description>A simple mvc framework for java application and gui developers.</description>
 	<url>http://code.google.com/p/java-simple-mvc/</url>
@@ -63,7 +63,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-				<version>2.0</version>
+				<version>2.0-beta-7</version>
 				<configuration>
 					<tagBase>https://java-simple-mvc.googlecode.com/svn</tagBase>
 					<mavenExecutorId>forked-path</mavenExecutorId>
