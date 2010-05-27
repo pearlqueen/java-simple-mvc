@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dmurph.mvc</groupId>
 	<artifactId>JavaSimpleMVC</artifactId>
-	<version>0.1.1</version>
+	<version>0.1.2-SNAPSHOT</version>
 	<name>java-simple-mvc</name>
 	<description>A simple mvc framework for java application and gui developers.</description>
 	<url>http://code.google.com/p/java-simple-mvc/</url>
@@ -17,9 +17,9 @@
 		</license>
 	</licenses>
 	<scm>
-		<url>http://java-simple-mvc.googlecode.com/svn/JavaSimpleMVC-0.1.1</url>
-		<connection>scm:svn:http://java-simple-mvc.googlecode.com/svn/JavaSimpleMVC-0.1.1</connection>
-		<developerConnection>scm:svn:https://java-simple-mvc.googlecode.com/svn/JavaSimpleMVC-0.1.1</developerConnection>
+		<url>http://java-simple-mvc.googlecode.com/svn/trunk/</url>
+		<connection>scm:svn:http://java-simple-mvc.googlecode.com/svn/trunk/</connection>
+		<developerConnection>scm:svn:https://java-simple-mvc.googlecode.com/svn/trunk/</developerConnection>
 	</scm>
 	<developers>
 		<developer>
