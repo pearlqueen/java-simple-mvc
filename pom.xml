@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.dmurph.mvc</groupId>
+	<groupId>com.dmurphy.mvc</groupId>
 	<artifactId>JavaSimpleMVC</artifactId>
-	<version>0.1.2-SNAPSHOT</version>
+	<version>0.1.1-SNAPSHOT</version>
 	<name>java-simple-mvc</name>
 	<description>A simple mvc framework for java application and gui developers.</description>
 	<url>http://code.google.com/p/java-simple-mvc/</url>
@@ -119,9 +119,9 @@
 
 	<distributionManagement>
 		<repository>
-			<id>sonatype-nexus-release</id>
-			<name>Sonatype Nexus Release</name>
-			<url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+			<id>sonatype-nexus-staging</id>
+      		<name>Nexus Release Repository</name>
+      		<url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 		<snapshotRepository>
 			<id>sonatype-nexus-snapshots1</id>
