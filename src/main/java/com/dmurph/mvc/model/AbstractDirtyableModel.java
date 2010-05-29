@@ -25,7 +25,7 @@
 package com.dmurph.mvc.model;
 
 /**
- * @author Daniel
+ * @author Daniel Murphy
  *
  */
 public abstract class AbstractDirtyableModel extends AbstractModel implements IDirtyable {

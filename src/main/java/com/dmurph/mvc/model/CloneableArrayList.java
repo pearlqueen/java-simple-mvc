@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * implement {@link ICloneable} in the {@link #clone()} and {@link #cloneFrom(ICloneable)} methods.
  * Although this implements {@link IDirtyable}, the functionality is limited to just keeping track of
  * when the list is dirty from any changes.
- * @author daniel
+ * @author Daniel Murphy
  */
 public class CloneableArrayList<E extends Object> extends ArrayList<E> implements ICloneable, IDirtyable {
 	private static final long serialVersionUID = 4890270966369581329L;

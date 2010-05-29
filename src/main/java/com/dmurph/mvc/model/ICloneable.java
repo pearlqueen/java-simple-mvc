@@ -26,7 +26,7 @@ package com.dmurph.mvc.model;
 
 /**
  *
- * @author daniel
+ * @author Daniel Murphy
  */
 public interface ICloneable {
 

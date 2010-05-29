@@ -28,6 +28,7 @@ package com.dmurph.mvc.control;
  * Simple event.  To dispatch call {@link #dispatch()}.
  * Note that events dispatch globally, so make sure that
  * the keys you choose are unique.
+ * @author Daniel Murphy
  */
 public class MVCEvent {
 	public final String key;

@@ -26,7 +26,7 @@ package com.dmurph.mvc.model;
 
 /**
  * For use with models.
- * @author daniel
+ * @author Daniel Murphy
  */
 public interface IDirtyable {
 	

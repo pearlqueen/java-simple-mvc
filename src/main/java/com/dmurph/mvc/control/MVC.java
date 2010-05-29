@@ -1,9 +1,4 @@
 /**
- * Created at 2:19:39 AM, Mar 12, 2010
- */
-package com.dmurph.mvc.control;
-
-/**
  * Copyright (c) 2010 Daniel Murphy
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,6 +19,11 @@ package com.dmurph.mvc.control;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+/**
+ * Created at 2:19:39 AM, Mar 12, 2010
+ */
+package com.dmurph.mvc.control;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -33,7 +33,7 @@ import java.util.Queue;
  * This stores all the listener information, dispatches events
  * to the corresponding listeners.  To dispatch events use
  * {@link MVCEvent#dispatch()}.
- * @author daniel
+ * @author Daniel Murphy
  */
 public class MVC implements Runnable{
 	private static final MVC mvc = new MVC();

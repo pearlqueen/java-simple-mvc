@@ -26,7 +26,7 @@ package com.dmurph.mvc.control;
 
 /**
  * Interface for an event receiver.
- * @author daniel
+ * @author Daniel Murphy
  */
 public interface IEventListener {
 	

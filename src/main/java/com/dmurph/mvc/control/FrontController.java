@@ -34,7 +34,7 @@ import java.util.Vector;
  * Abstract controller.  Use {@link #registerEventKey(String, IEventListener)} and {@link #registerEventKey(String, String)}
  * to listen for events from the view objects.  The {@link #registerEventKey(String, String)} method is
  * easier to use, as it will call a method for you when an event with the given key is dispatched.
- * @author daniel
+ * @author Daniel Murphy
  */
 public abstract class FrontController{
 
