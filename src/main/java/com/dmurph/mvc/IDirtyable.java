@@ -22,42 +22,38 @@
 /**
  * Created at 2:20:29 PM, Apr 5, 2010
  */
-package com.dmurph.mvc.model;
+package com.dmurph.mvc;
 
 /**
- * For use with models.
+ * This interface allows checking to see if an object is changed (is "dirty"),
+ * and reverting changes back to when the object wasn't dirty.
  * @author Daniel Murphy
  */
 public interface IDirtyable {
 	
 	/**
-	 * Returns if the object is dirty
-	 * @return
+	 * @return if the object is dirty, if it was changed
+	 * since the last time {@link #setDirty(boolean)} was called
+	 * with false.
 	 */
 	public boolean isDirty();
 	
 	/**
-	 * Called every time a value is set to update
-	 * if a model is dirty yet.  After this is called
-	 * with false, a model will be always dirty until
-	 * {@link #clean()} or {@link #setDirty(boolean)}
-	 * @param argIsDirty
-	 */
-	public void updateDirty(boolean argIsDirty);
-	
-	/**
 	 * Sets if the model is dirty or not.  If called
 	 * with false, the clean objects are cloned from the
-	 * current working objects.  Saves changes to the model.
-	 * @param argDirty
+	 * current working objects.  Equivalent of saving the
+	 * model.  Basically, when {@link #revert()}
+	 * is called it will revert to when setDirty(false) was called.
+	 * @param argDirty true to make the object dirty, false to save
+	 * 					the dirty values in the object
 	 * @return the previous dirty value
 	 */
 	public boolean setDirty(boolean argDirty);
 	
 	/**
-	 * Cleans the model from the stored clean objects.
-	 * Equivilant of clicking cancel, reverts changes.
-	 * @return if the model was dirty
+	 * Reverts the dirty changes. The model should
+	 * not be dirty after this call.
+	 * @return if the model was dirty previously
 	 */
-	public boolean clean();
+	public boolean revert();
 }

@@ -25,10 +25,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import com.dmurph.mvc.util.MVCArrayList;
+
 /**
  * <p>Abstract model class, used for storing data and throwing {@link PropertyChangeEvent}s when values are changed.
  * Extending classes should call {@link #firePropertyChange(String, Object, Object)} for this to work.
- * For storing arrays of values, look at {@link CloneableArrayList} for easy cloning.</p>
+ * For storing arrays of values, look at {@link MVCArrayList} for easy cloning.</p>
  * <p>For models that need to keep track of original values versus new values (like a dirtyable
  * model that revert to original values, used for knowing if something needs saving, etc), then look at 
  * {@link AbstractDirtyableModel}.</p>
@@ -38,7 +40,7 @@ import java.beans.PropertyChangeSupport;
  * @see AbstractDirtyableModel
  * @author Daniel Murphy
  */
-public abstract class AbstractModel implements ICloneable{
+public abstract class AbstractModel{
 	protected final PropertyChangeSupport propertyChangeSupport;
 	
     public AbstractModel(){
@@ -75,10 +77,4 @@ public abstract class AbstractModel implements ICloneable{
     	// this handles the rest internally
         propertyChangeSupport.firePropertyChange(argPropertyName, argOldValue, argNewValue);
     }
-	
-	/**
-	 * @see ICloneable#clone()
-	 */
-	@Override
-	public abstract ICloneable clone();
 }

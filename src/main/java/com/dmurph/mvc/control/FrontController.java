@@ -26,35 +26,55 @@ package com.dmurph.mvc.control;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Vector;
+
+import com.dmurph.mvc.IEventListener;
+import com.dmurph.mvc.MVC;
+import com.dmurph.mvc.MVCEvent;
 
 
 /**
- * Abstract controller.  Use {@link #registerEventKey(String, IEventListener)} and {@link #registerEventKey(String, String)}
- * to listen for events from the view objects.  The {@link #registerEventKey(String, String)} method is
+ * Abstract controller.  Use {@link #registerCommand(String, IEventListener)} and {@link #registerCommand(String, String)}
+ * to listen for events from the view objects.  The {@link #registerCommand(String, String)} method is
  * easier to use, as it will call a method for you when an event with the given key is dispatched.
  * @author Daniel Murphy
  */
 public abstract class FrontController{
-
-	private final HashMap<String, Vector<Method>> keyToMethods = new HashMap<String, Vector<Method>>();
-	private final FrontControllerEventListener listener;
 	
 	// for getting the method
 	private final Class<?> paramTypes[] = { MVCEvent.class };
+	private final HashMap<String, HashSet<ICommand>> keyToCommands;
 	
 	public FrontController(){
-		listener = new FrontControllerEventListener(this);
+		keyToCommands = new HashMap<String, HashSet<ICommand>>();
 	}
 	/**
 	 * Registers the listener to the given key. {@link MVCEvent}'s are dispatched globally, so 
 	 * careful with the actual values of your keys and make sure they are unique.
 	 * @param argKey
-	 * @param argListener
+	 * @param argCommand
 	 */
-	protected void registerEventKey(String argKey, IEventListener argListener){
-		MVC.addEventListener( argKey, argListener);
+	protected void registerCommand(String argKey, ICommand argCommand){
+		if(argCommand == null){
+			throw new NullPointerException("Command cannot be null");
+		}
+		if(argKey == null){
+			throw new NullPointerException("Key cannot be null");
+		}
+		
+		if(keyToCommands.containsKey(argKey)){
+			keyToCommands.get(argKey).add(argCommand);
+		}else{
+			HashSet<ICommand> commands = new HashSet<ICommand>();
+			commands.add(argCommand);
+			keyToCommands.put(argKey, commands);
+		}
+		
+		FrontControllerEventListener listener = new FrontControllerEventListener(this, argCommand);
+		MVC.addEventListener(argKey, listener);
 	}
 	
 	/**
@@ -63,56 +83,107 @@ public abstract class FrontController{
 	 * More than one method can be assigned to a key, and they will be called in the order of
 	 * registration.  Duplicate registrations will be ignored.
 	 * @param argKey
-	 * @param argMethodName
+	 * @param argCommandMethod
+	 * @throws NoSuchMethodException 
+	 * @throws SecurityException 
 	 */
-	protected void registerEventKey(String argKey, String argMethodName){
-		Vector<Method> methods = keyToMethods.get( argKey);
-		
-		if(methods == null){
-			methods = new Vector<Method>();
-			keyToMethods.put( argKey, methods);
+	protected void registerCommand(String argKey, String argCommandMethod) throws SecurityException, NoSuchMethodException{
+		if(argKey == null){
+			throw new NullPointerException("Key cannot be null");
+		}
+		if(argCommandMethod == null){
+			throw new NullPointerException("Command cannot be null");
 		}
 		
-		Class<? extends FrontController> c = this.getClass();
-		Method m;
-		try {
-			m = c.getMethod( argMethodName, paramTypes);
-		} catch ( SecurityException e) {
-			e.printStackTrace();
-			return;
-		} catch ( NoSuchMethodException e) {
-			throw new RuntimeException("No such method '"+argMethodName+"' with a MVCEvent parameter");
-		}
+		Method m = getClass().getMethod( argCommandMethod, paramTypes);
 		
-		methods.add( m);
-		
-		MVC.addEventListener( argKey, listener);
+		MethodCommand mCommand = new MethodCommand(this, m);
+		registerCommand(argKey, mCommand);
 	}
 	
-	private class FrontControllerEventListener implements IEventListener{
-		private FrontController controller;
-		public FrontControllerEventListener(FrontController argController) {
+	private static class FrontControllerEventListener implements IEventListener{
+		private final FrontController controller;
+		private final ICommand command;
+		
+		public FrontControllerEventListener(FrontController argController, ICommand argCommand) {
 			controller = argController;
+			command = argCommand;
 		}
 		
 		@Override
 		public void eventReceived( MVCEvent argEvent) {
-			Vector<Method> vec = keyToMethods.get(argEvent.key);
-			for(Method m: vec){
-				try {
-					m.invoke( controller, argEvent);
-				} catch ( IllegalArgumentException e) {
-					System.err.println("Error invoking method '"+m+"'");
-					e.printStackTrace();
-				} catch ( IllegalAccessException e) {
-					System.err.println("Error invoking method '"+m+"'");
-					e.printStackTrace();
-				} catch ( InvocationTargetException e) {
-					System.err.println("Error invoking method '"+m+"'");
-					e.printStackTrace();
-				}
+			HashSet<ICommand> commands = controller.keyToCommands.get(argEvent.key);
+			
+			for(ICommand command : commands){
+				command.execute(argEvent);
+			}
+		}
+	}
+	
+	private static class MethodCommand implements ICommand {
+		private final FrontController controller;
+		private final Method method;
+		
+		public MethodCommand(FrontController argController, Method argMethod){
+			controller = argController;
+			method = argMethod;
+		}
+
+		/**
+		 * @see com.dmurph.mvc.control.ICommand#execute(com.dmurph.mvc.MVCEvent)
+		 */
+		@Override
+		public void execute(MVCEvent argEvent) {
+			try {
+				method.invoke( controller, argEvent);
+			} catch ( IllegalArgumentException e) {
+				System.err.println("Error invoking method '"+method+"'");
+				e.printStackTrace();
+			} catch ( IllegalAccessException e) {
+				System.err.println("Error invoking method '"+method+"'");
+				e.printStackTrace();
+			} catch ( InvocationTargetException e) {
+				System.err.println("Error invoking method '"+method+"'");
+				e.printStackTrace();
 			}
 		}
 		
+		/**
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((method == null) ? 0 : method.hashCode());
+			return result;
+		}
+
+		/**
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			MethodCommand other = (MethodCommand) obj;
+			if (controller == null) {
+				if (other.controller != null)
+					return false;
+			}
+			else if (!controller.equals(other.controller))
+				return false;
+			if (method == null) {
+				if (other.method != null)
+					return false;
+			}
+			else if (!method.equals(other.method))
+				return false;
+			return true;
+		}
 	}
 }

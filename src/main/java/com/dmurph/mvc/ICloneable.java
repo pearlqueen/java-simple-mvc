@@ -20,47 +20,25 @@
  * THE SOFTWARE.
  */
 /**
- * Created at 2:22:05 AM, Mar 12, 2010
+ * Created at 2:37:58 PM, Apr 5, 2010
  */
-package com.dmurph.mvc.control;
+package com.dmurph.mvc;
 
 /**
- * Simple event.  To dispatch call {@link #dispatch()}.
- * Note that events dispatch globally, so make sure that
- * the keys you choose are unique.
+ *
  * @author Daniel Murphy
  */
-public class MVCEvent {
-	public final String key;
-	
-	private volatile boolean propagate = true;
-	
-	public MVCEvent(final String argKey) {
-		key = argKey;
-	}
+public interface ICloneable {
 
-	@Override
-	public String toString() {
-		return super.toString() + "-" + key;
-	}
+	/**
+	 * Clones from another object
+	 * @param argOther the object to clone
+	 */
+	public void cloneFrom(ICloneable argOther);
 	
 	/**
-	 * Stops the event from propagating to the rest of the listeners.  Listeners are stored
-	 * as a stack, so newer listeners recieve events first.
+	 * Full clone of this object.  Not a shallow copy.
+	 * @return the cloned object
 	 */
-	public void stopPropagation(){
-		propagate = false;
-	}
-	
-	protected boolean isPropagating(){
-		return propagate;
-	}
-	
-	/**
-	 * Dispatches the event.  Events are dispatched globally, so make
-	 * sure you're key is unique!
-	 */
-	public void dispatch(){
-		MVC.dispatchEvent( this);
-	}
+	public ICloneable clone();
 }

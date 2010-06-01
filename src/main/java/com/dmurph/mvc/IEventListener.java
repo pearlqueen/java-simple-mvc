@@ -22,7 +22,8 @@
 /**
  * Created at 2:20:27 AM, Mar 12, 2010
  */
-package com.dmurph.mvc.control;
+package com.dmurph.mvc;
+
 
 /**
  * Interface for an event receiver.

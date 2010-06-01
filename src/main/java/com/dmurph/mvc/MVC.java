@@ -22,12 +22,13 @@
 /**
  * Created at 2:19:39 AM, Mar 12, 2010
  */
-package com.dmurph.mvc.control;
+package com.dmurph.mvc;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+
 
 /**
  * This stores all the listener information, dispatches events
@@ -37,7 +38,7 @@ import java.util.Queue;
  */
 public class MVC implements Runnable{
 	private static final MVC mvc = new MVC();
-	private static final Thread thread = new Thread(mvc, "MVC");
+	private static final Thread thread = new Thread(mvc, "MVC Thread");
 	
 	private final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
@@ -122,7 +123,7 @@ public class MVC implements Runnable{
 	 * Dispatch an event
 	 * @param argEvent
 	 */
-	protected static void dispatchEvent( MVCEvent argEvent) {
+	protected synchronized static void dispatchEvent( MVCEvent argEvent) {
 		if (mvc.listeners.containsKey(argEvent.key)) {
 			mvc.eventQueue.add( argEvent	);
 			if(!mvc.running){
@@ -132,7 +133,7 @@ public class MVC implements Runnable{
 	}
 	
 	public synchronized static void stopDispatchThread(){
-		System.out.println("Stopping CorinaMVC EventDispatch thread.");
+		System.out.println("Stopping MVC EventDispatch thread.");
 		mvc.running = false;
 	}
 	
@@ -146,7 +147,7 @@ public class MVC implements Runnable{
 	@Override
 	public void run(){
 		running = true;
-		System.out.println("CorinaMVC EventDispatch thread starting");
+		System.out.println("Starting MVC EventDispatch thread.");
 		while(running){
 			if(eventQueue.isEmpty()){
 				try {
@@ -157,7 +158,7 @@ public class MVC implements Runnable{
 				internalDispatchEvent( event);
 			}
 		}
-		System.out.println("CorinaMVC EventDispatch thread stopped");
+		System.out.println("MVC EventDispatch thread stopped");
 	}
 	
 	private synchronized void internalDispatchEvent(MVCEvent argEvent){

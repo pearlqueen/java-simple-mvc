@@ -22,18 +22,23 @@
 /**
  * Created at 2:47:16 PM, Apr 5, 2010
  */
-package com.dmurph.mvc.model;
+package com.dmurph.mvc.util;
 
 import java.util.ArrayList;
+
+import com.dmurph.mvc.ICloneable;
+import com.dmurph.mvc.IDirtyable;
 
 /**
  * {@link ICloneable} and {@link IDirtyable} Array List.  Will clone all values that
  * implement {@link ICloneable} in the {@link #clone()} and {@link #cloneFrom(ICloneable)} methods.
  * Although this implements {@link IDirtyable}, the functionality is limited to just keeping track of
  * when the list is dirty from any changes.
+ * 
+ * TODO reverting changes, saving, etc
  * @author Daniel Murphy
  */
-public class CloneableArrayList<E extends Object> extends ArrayList<E> implements ICloneable, IDirtyable {
+public class MVCArrayList<E extends Object> extends ArrayList<E> implements ICloneable, IDirtyable {
 	private static final long serialVersionUID = 4890270966369581329L;
 	
 	private boolean dirty = false;
@@ -73,7 +78,8 @@ public class CloneableArrayList<E extends Object> extends ArrayList<E> implement
 	/**
 	 * Clones from another {@link ArrayList}, if the values are {@link ICloneable}, then
 	 * they will be cloned to this one.  Otherwise it's a shallow copy (just sets the same values).
-	 * @see com.dmurph.mvc.model.ICloneable#cloneFrom(com.dmurph.mvc.model.ICloneable)
+	 * @param argOther an {@link ArrayList}
+	 * @see com.dmurph.mvc.ICloneable#cloneFrom(com.dmurph.mvc.ICloneable)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
@@ -90,32 +96,32 @@ public class CloneableArrayList<E extends Object> extends ArrayList<E> implement
 	}
 
 	/**
-	 * Clones this object to another {@link CloneableArrayList}.  If the array values
+	 * Clones this object to another {@link MVCArrayList}.  If the array values
 	 * are also {@link ICloneable}, then they will be cloned as well.  If not, the values
 	 * are just set (shallow copy).
 	 * @see java.util.ArrayList#clone()
 	 */
 	@Override
 	public ICloneable clone(){
-		CloneableArrayList<E> other = new CloneableArrayList<E>();
+		MVCArrayList<E> other = new MVCArrayList<E>();
 		other.cloneFrom(this);
-		other.clean();
+		other.revert();
 		return other;
 	}
 
 	/**
 	 * Just sets dirty to false, doesn't revert changes
-	 * @see IDirtyable#clean()
+	 * @see IDirtyable#revert()
 	 */
 	@Override
-	public boolean clean() {
+	public boolean revert() {
 		boolean oldDirty = dirty;
 		dirty = false;
 		return oldDirty;
 	}
 
 	/**
-	 * @see com.dmurph.mvc.model.IDirtyable#isDirty()
+	 * @see com.dmurph.mvc.IDirtyable#isDirty()
 	 */
 	@Override
 	public boolean isDirty() {
@@ -124,17 +130,12 @@ public class CloneableArrayList<E extends Object> extends ArrayList<E> implement
 
 	/**
 	 * Just sets the dirty variable
-	 * @see com.dmurph.mvc.model.IDirtyable#setDirty(boolean)
+	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
 	@Override
 	public boolean setDirty( boolean argDirty) {
 		boolean oldDirty = dirty;
 		dirty = argDirty;
 		return oldDirty;
-	}
-
-	@Override
-	public void updateDirty( boolean argIsDirty) {
-		dirty = argIsDirty || dirty;
 	}
 }

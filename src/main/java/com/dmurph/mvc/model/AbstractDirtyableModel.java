@@ -24,17 +24,20 @@
  */
 package com.dmurph.mvc.model;
 
+import com.dmurph.mvc.ICloneable;
+import com.dmurph.mvc.IDirtyable;
+
 /**
  * @author Daniel Murphy
  *
  */
-public abstract class AbstractDirtyableModel extends AbstractModel implements IDirtyable {
+public abstract class AbstractDirtyableModel extends AbstractModel implements IDirtyable, ICloneable {
 
 	private boolean dirty = false;
 
     /**
      * If the model is "dirty", or changed since last save.
-     * @see com.dmurph.mvc.model.IDirtyable#isDirty()
+     * @see com.dmurph.mvc.IDirtyable#isDirty()
      */
 	@Override
 	public boolean isDirty(){
@@ -42,16 +45,16 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	}
 	
 	/**
-	 * Call this every time a value is set.
-	 * @see com.dmurph.mvc.model.IDirtyable#updateDirty(boolean)
+	 * Call this every time a value is set so that the
+	 * dirty value can be updated.  As soon as this is
+	 * called with true, then the object will be dirty.
 	 */
-	@Override
-	public void updateDirty(boolean argIsDirty){
+	protected void updateDirty(boolean argIsDirty){
 		dirty = dirty || argIsDirty;
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.model.IDirtyable#setDirty(boolean)
+	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
 	@Override
 	public boolean setDirty(boolean argDirty){
@@ -61,7 +64,7 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 		}
 		
 		if(!dirty){
-			save();
+			cleanModel();
 		}
 		dirty = argDirty;
 		return oldDirty;
@@ -69,10 +72,10 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	
 	/**
 	 * Reverts to clean state, gets rid of changes.
-	 * @see com.dmurph.mvc.model.IDirtyable#clean()
+	 * @see com.dmurph.mvc.IDirtyable#revert()
 	 */
 	@Override
-	public boolean clean(){
+	public boolean revert(){
 		boolean oldDirty = dirty;
 		revert();
 		dirty = false;
@@ -82,11 +85,15 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	/**
 	 * Revert the model to the clean values.
 	 */
-	protected abstract void revert();
+	protected abstract void revertModel();
 	
 	/**
 	 * Save the clean values from the working/dirty values
 	 */
-	protected abstract void save();
+	protected abstract void cleanModel();
 
+	/**
+	 * @see ICloneable#clone()
+	 */
+	public abstract ICloneable clone();
 }
