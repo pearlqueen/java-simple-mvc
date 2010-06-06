@@ -17,7 +17,7 @@
 		</license>
 	</licenses>
 	<scm>
-		<url>scm:https://code.google.com/p/java-simple-mvc/source/browse/</url>
+		<url>https://code.google.com/p/java-simple-mvc/source/browse/</url>
 		<connection>scm:svn:http://java-simple-mvc.googlecode.com/svn</connection>
 		<developerConnection>scm:svn:https://java-simple-mvc.googlecode.com/svn</developerConnection>
 	</scm>
