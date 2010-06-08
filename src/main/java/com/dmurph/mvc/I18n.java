@@ -113,8 +113,6 @@ public class I18n {
 		}
 	}
 	
-	
-	
 	/**
 	 * Get the keystroke string for this key. This string can be passed directly
 	 * to the Keystroke.getKeyStroke() method.
