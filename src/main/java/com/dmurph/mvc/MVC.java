@@ -24,7 +24,6 @@
  */
 package com.dmurph.mvc;
 
-import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
