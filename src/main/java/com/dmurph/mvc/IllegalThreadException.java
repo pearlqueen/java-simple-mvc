@@ -31,6 +31,14 @@ public class IllegalThreadException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	public IllegalThreadException(){
-		super("Thread must be an MVC thread.");
+		super(I18n.getText("exception.illegalThread"));
+	}
+	
+	/**
+	 * @see java.lang.Throwable#getLocalizedMessage()
+	 */
+	@Override
+	public String getLocalizedMessage() {
+		return I18n.getText("exception.illegalThread");
 	}
 }

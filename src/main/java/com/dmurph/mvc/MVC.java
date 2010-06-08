@@ -174,7 +174,6 @@ public class MVC extends Thread{
 	}
 	
 	public synchronized static void stopDispatchThread(){
-		System.out.println("Stopping MVC EventDispatch thread.");
 		mainThread.running = false;
 	}
 	
@@ -192,7 +191,6 @@ public class MVC extends Thread{
 	@Override
 	public void run(){
 		running = true;
-		System.out.println("Starting MVC EventDispatch thread.");
 		while(running){
 			if(eventQueue.isEmpty()){
 				try {

@@ -31,6 +31,14 @@ public class IncorrectThreadException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	public IncorrectThreadException(){
-		super("Thread is an MVC thread but not the main dispatcher.");
+		super(I18n.getText("exception.incorrectThread"));
+	}
+	
+	/**
+	 * @see java.lang.Throwable#getLocalizedMessage()
+	 */
+	@Override
+	public String getLocalizedMessage() {
+		return I18n.getText("exception.incorrectThread");
 	}
 }
