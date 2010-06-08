@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
 
+import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.IEventListener;
 import com.dmurph.mvc.MVC;
 import com.dmurph.mvc.MVCEvent;
@@ -57,12 +58,12 @@ public abstract class FrontController{
 	 * @param argKey
 	 * @param argCommand
 	 */
-	protected void registerCommand(String argKey, ICommand argCommand){
+	protected synchronized void registerCommand(String argKey, ICommand argCommand){
 		if(argCommand == null){
-			throw new NullPointerException("Command cannot be null");
+			throw new NullPointerException(I18n.getText("frontController.commandNull"));
 		}
 		if(argKey == null){
-			throw new NullPointerException("Key cannot be null");
+			throw new NullPointerException(I18n.getText("frontController.keyNull"));
 		}
 		
 		if(keyToCommands.containsKey(argKey)){
@@ -70,11 +71,10 @@ public abstract class FrontController{
 		}else{
 			HashSet<ICommand> commands = new HashSet<ICommand>();
 			commands.add(argCommand);
+			FrontControllerEventListener listener = new FrontControllerEventListener(this);
+			MVC.addEventListener(argKey, listener);
 			keyToCommands.put(argKey, commands);
 		}
-		
-		FrontControllerEventListener listener = new FrontControllerEventListener(this, argCommand);
-		MVC.addEventListener(argKey, listener);
 	}
 	
 	/**
@@ -87,12 +87,12 @@ public abstract class FrontController{
 	 * @throws NoSuchMethodException 
 	 * @throws SecurityException 
 	 */
-	protected void registerCommand(String argKey, String argCommandMethod) throws SecurityException, NoSuchMethodException{
+	protected synchronized void registerCommand(String argKey, String argCommandMethod) throws SecurityException, NoSuchMethodException{
 		if(argKey == null){
-			throw new NullPointerException("Key cannot be null");
+			throw new NullPointerException(I18n.getText("frontController.keyNull"));
 		}
 		if(argCommandMethod == null){
-			throw new NullPointerException("Command cannot be null");
+			throw new NullPointerException(I18n.getText("frontController.commandNull"));
 		}
 		
 		Method m = getClass().getMethod( argCommandMethod, paramTypes);
@@ -103,11 +103,9 @@ public abstract class FrontController{
 	
 	private static class FrontControllerEventListener implements IEventListener{
 		private final FrontController controller;
-		private final ICommand command;
 		
-		public FrontControllerEventListener(FrontController argController, ICommand argCommand) {
+		public FrontControllerEventListener(FrontController argController) {
 			controller = argController;
-			command = argCommand;
 		}
 		
 		@Override
@@ -137,13 +135,13 @@ public abstract class FrontController{
 			try {
 				method.invoke( controller, argEvent);
 			} catch ( IllegalArgumentException e) {
-				System.err.println("Error invoking method '"+method+"'");
+				System.err.println(I18n.getText("frontController.invokingMethod", method.toString()));
 				e.printStackTrace();
 			} catch ( IllegalAccessException e) {
-				System.err.println("Error invoking method '"+method+"'");
+				System.err.println(I18n.getText("frontController.invokingMethod", method.toString()));
 				e.printStackTrace();
 			} catch ( InvocationTargetException e) {
-				System.err.println("Error invoking method '"+method+"'");
+				System.err.println(I18n.getText("frontController.invokingMethod", method.toString()));
 				e.printStackTrace();
 			}
 		}
