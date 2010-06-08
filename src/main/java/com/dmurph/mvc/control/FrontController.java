@@ -26,10 +26,8 @@ package com.dmurph.mvc.control;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Vector;
 
 import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.IEventListener;
