@@ -47,8 +47,10 @@ public class MVC extends Thread{
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
 	private volatile boolean running = false;
 	
+	private volatile static int threadCounter = 0;
+	
 	private MVC() {
-		super(mvcThreadGroup, "MVC Thread #"+mvcThreads.size());
+		super(mvcThreadGroup, "MVC Thread #"+(threadCounter++));
 		mvcThreads.add(this);
 	}
 
@@ -142,10 +144,12 @@ public class MVC extends Thread{
 	 * Split off the current MVC thread, all queued events and future
 	 * event dispatches are handled by a new MVC thread, while this one
 	 * runs to completion.  If the thread calling this is not the current
-	 * core MVC thread, then nothing happens.
-	 * @throws IllegalThreadException
+	 * core MVC thread, then an exception is thrown
+	 * @throws IllegalThreadException if the thread calling this is not an MVC thread
+	 * @throws IncorrectThreadException if the MVC thread calling this is not the main thread, e.g.
+	 *									it has already split off.
 	 */
-	public synchronized static void splitOff() throws IllegalThreadException{
+	public synchronized static void splitOff() throws IllegalThreadException, IncorrectThreadException{
 		if( Thread.currentThread() instanceof MVC){
 			MVC thread = (MVC) Thread.currentThread();
 			if(thread == mainThread){
@@ -166,18 +170,21 @@ public class MVC extends Thread{
 				
 				mainThread.start();
 			}else{
-				throw new IllegalThreadException();
+				throw new IncorrectThreadException();
 			}
 		}else{
 			throw new IllegalThreadException();
 		}
 	}
 	
+	/**
+	 * 
+	 */
 	public synchronized static void stopDispatchThread(){
 		mainThread.running = false;
 	}
 	
-	public synchronized static void restartDispatchThread(){
+	public synchronized static void startDispatchThread(){
 		if(mainThread.running){
 			return;
 		}

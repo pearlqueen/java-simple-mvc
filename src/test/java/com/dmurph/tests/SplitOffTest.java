@@ -28,6 +28,7 @@ import java.util.HashSet;
 
 import com.dmurph.mvc.IEventListener;
 import com.dmurph.mvc.IllegalThreadException;
+import com.dmurph.mvc.IncorrectThreadException;
 import com.dmurph.mvc.MVC;
 import com.dmurph.mvc.MVCEvent;
 
@@ -68,6 +69,11 @@ public class SplitOffTest extends TestCase implements IEventListener{
 		threads.add(Thread.currentThread());
 		try {
 			MVC.splitOff();
-		} catch (IllegalThreadException e) {}
+		} catch (IllegalThreadException e) {
+			e.printStackTrace();
+		}
+		catch (IncorrectThreadException e) {
+			e.printStackTrace();
+		}
 	}
 }
