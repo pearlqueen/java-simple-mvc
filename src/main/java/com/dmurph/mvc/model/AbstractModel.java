@@ -42,7 +42,7 @@ import com.dmurph.mvc.util.MVCArrayList;
  */
 public abstract class AbstractModel{
 	protected final PropertyChangeSupport propertyChangeSupport;
-	
+		
     public AbstractModel(){
         propertyChangeSupport = new PropertyChangeSupport(this);
     }
@@ -71,10 +71,6 @@ public abstract class AbstractModel{
      * @param argNewValue
      */
     protected void firePropertyChange(String argPropertyName, Object argOldValue, Object argNewValue) {
-    	if(argOldValue != null && argOldValue.equals(argNewValue)){
-    		return;
-    	}
-    	// this handles the rest internally
         propertyChangeSupport.firePropertyChange(argPropertyName, argOldValue, argNewValue);
     }
 }

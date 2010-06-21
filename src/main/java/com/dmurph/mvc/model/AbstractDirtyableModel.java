@@ -34,7 +34,7 @@ import com.dmurph.mvc.IDirtyable;
 public abstract class AbstractDirtyableModel extends AbstractModel implements IDirtyable, ICloneable {
 
 	private boolean dirty = false;
-
+	
     /**
      * If the model is "dirty", or changed since last save.
      * @see com.dmurph.mvc.IDirtyable#isDirty()
@@ -45,53 +45,15 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	}
 	
 	/**
-	 * Call this every time a value is set so that the
-	 * dirty value can be updated.  As soon as this is
-	 * called with true, then the object will be dirty.
-	 */
-	protected void updateDirty(boolean argIsDirty){
-		dirty = dirty || argIsDirty;
-	}
-	
-	/**
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
 	@Override
 	public boolean setDirty(boolean argDirty){
 		boolean oldDirty = dirty;
-		if(dirty == argDirty){
-			return dirty;
-		}
-		
-		if(!dirty){
-			cleanModel();
-		}
 		dirty = argDirty;
 		return oldDirty;
 	}
 	
-	/**
-	 * Reverts to clean state, gets rid of changes.
-	 * @see com.dmurph.mvc.IDirtyable#revert()
-	 */
-	@Override
-	public boolean revert(){
-		boolean oldDirty = dirty;
-		revert();
-		dirty = false;
-		return oldDirty;
-	}
-	
-	/**
-	 * Revert the model to the clean values.
-	 */
-	protected abstract void revertModel();
-	
-	/**
-	 * Save the clean values from the working/dirty values
-	 */
-	protected abstract void cleanModel();
-
 	/**
 	 * @see ICloneable#clone()
 	 */

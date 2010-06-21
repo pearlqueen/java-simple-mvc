@@ -20,27 +20,31 @@
  * THE SOFTWARE.
  */
 /**
- * Created at 2:20:29 PM, Apr 5, 2010
+ * Created at Jun 21, 2010, 3:57:50 AM
  */
 package com.dmurph.mvc;
 
 /**
- * This interface allows checking to see if an object is changed (is "dirty").
+ * An object that is revertable, where changes
+ * can be "canceled".
  * @author Daniel Murphy
  */
-public interface IDirtyable {
+public interface IRevertable {
+
+	/**
+	 * Saves the current changes to the model so
+	 * further calls to {@link #revertChanges()}
+	 * will revert changes to the model's current
+	 * state.
+	 * @return if there were changes to save
+	 */
+	public boolean saveChanges();
 	
 	/**
-	 * @return if the object is dirty, if it was changed
-	 * since the last time {@link #setDirty(boolean)} was called
-	 * with false.
+	 * Reverts the model to the last time {@link #saveChanges()}
+	 * was called, or to it's original state if {@link #saveChanges()}
+	 * was never called.
+	 * @return if changed were reverted
 	 */
-	public boolean isDirty();
-	
-	/**
-	 * Sets if the object is dirty or not
-	 * @param argDirty
-	 * @return the previous dirty value
-	 */
-	public boolean setDirty(boolean argDirty);
+	public boolean revertChanges();
 }

@@ -30,7 +30,6 @@ import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 
 /**
- * TODO implement revert, save, etc
  * @author Daniel Murphy
  */
 public class MVCHashMap<K, V> extends HashMap<K, V> implements ICloneable, IDirtyable{
@@ -93,17 +92,6 @@ public class MVCHashMap<K, V> extends HashMap<K, V> implements ICloneable, IDirt
 		MVCHashMap<K, V> map = new MVCHashMap<K, V>();
 		map.cloneFrom(this);
 		return map;
-	}
-
-	/**
-	 * Just sets dirty to false, doesn't revert changes
-	 * @see IDirtyable#revert()
-	 */
-	@Override
-	public boolean revert() {
-		boolean oldDirty = dirty;
-		dirty = false;
-		return oldDirty;
 	}
 
 	/**

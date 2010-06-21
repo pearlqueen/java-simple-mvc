@@ -32,8 +32,6 @@ import com.dmurph.mvc.IDirtyable;
 /**
  * {@link ICloneable} and {@link IDirtyable} Array List.  Will clone all values that
  * implement {@link ICloneable} in the {@link #clone()} and {@link #cloneFrom(ICloneable)} methods.
- * Although this implements {@link IDirtyable}, the functionality is limited to just keeping track of
- * when the list is dirty from any changes.
  * 
  * TODO reverting changes, saving, etc
  * @author Daniel Murphy
@@ -105,19 +103,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IClo
 	public ICloneable clone(){
 		MVCArrayList<E> other = new MVCArrayList<E>();
 		other.cloneFrom(this);
-		other.revert();
+		other.setDirty(false);
 		return other;
-	}
-
-	/**
-	 * Just sets dirty to false, doesn't revert changes
-	 * @see IDirtyable#revert()
-	 */
-	@Override
-	public boolean revert() {
-		boolean oldDirty = dirty;
-		dirty = false;
-		return oldDirty;
 	}
 
 	/**

@@ -104,17 +104,6 @@ public class MVCHashSet<E> extends HashSet<E> implements ICloneable, IDirtyable{
 			}
 		}
 	}
-	
-	/**
-	 * Just sets dirty to false, doesn't revert changes
-	 * @see IDirtyable#revert()
-	 */
-	@Override
-	public boolean revert() {
-		boolean oldDirty = dirty;
-		dirty = false;
-		return oldDirty;
-	}
 
 	/**
 	 * @see com.dmurph.mvc.IDirtyable#isDirty()
