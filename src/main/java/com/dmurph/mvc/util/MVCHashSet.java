@@ -73,7 +73,7 @@ public class MVCHashSet<E> extends HashSet<E> implements ICloneable, IDirtyable{
 	 * Clones this object, if it can it will clone the objects in the set as well,
 	 * as long as they implement {@link ICloneable}.  Otherwise it can't copy them, and does
 	 * a shallow copy.
-	 * @see com.dmurph.mvc.model.ICloneable#clone();
+	 * @see com.dmurph.mvc.model.ICloneable#clone()
 	 */
 	@Override
 	public ICloneable clone(){

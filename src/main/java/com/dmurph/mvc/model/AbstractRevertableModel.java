@@ -99,6 +99,7 @@ public abstract class AbstractRevertableModel extends AbstractModel implements I
 			wrapper.name = argPropertyName;
 			wrapper.cleanObject = argOldValue;
 			wrapper.dirtyObject = argNewValue;
+			propertyMap.put(argPropertyName, wrapper);
 		}
 		super.firePropertyChange(argPropertyName, argOldValue, argNewValue);
 	}
