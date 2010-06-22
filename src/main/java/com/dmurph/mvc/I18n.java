@@ -24,7 +24,9 @@
  */
 package com.dmurph.mvc;
 
+import java.util.Enumeration;
 import java.util.MissingResourceException;
+import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
 
 import javax.swing.KeyStroke;
@@ -51,7 +53,7 @@ public class I18n {
 		String value = null;
 		
 		try {
-			value = msg.getString(key);
+			value = resourceBundle.getString(key);
 		} catch (MissingResourceException e) {
 			System.err.println("Unable to find the translation for the key: " + key);
 			return key;
@@ -151,7 +153,7 @@ public class I18n {
 	 * @return the keystroke
 	 */
 	public static KeyStroke getKeyStroke(String key) {
-		String value = msg.getString(key);
+		String value = resourceBundle.getString(key);
 		
 		int left = value.indexOf('[');
 		int right = value.indexOf(']');
@@ -184,7 +186,7 @@ public class I18n {
 	 * @return the integer representing the mnemonic character
 	 */
 	public static Integer getMnemonic(String key) {
-		String value = msg.getString(key);
+		String value = resourceBundle.getString(key);
 		
 		int amp = value.indexOf('&');
 		
@@ -203,7 +205,7 @@ public class I18n {
 	 * @return an Integer, or null
 	 */
 	public static Integer getMnemonicPosition(String key) {
-		String value = msg.getString(key);
+		String value = resourceBundle.getString(key);
 		
 		int amp = value.indexOf('&');
 		
@@ -215,7 +217,7 @@ public class I18n {
 	}
 	
 	// the resource bundle to use
-	private final static ResourceBundle msg;
+	private final static ResourceBundle resourceBundle;
 	
 	static {
 		ResourceBundle bundle;
@@ -225,10 +227,34 @@ public class I18n {
 			try {
 				bundle = ResourceBundle.getBundle("java-simple-mvc");
 			} catch (MissingResourceException mre2) {
+				System.out.println("Could not find locale file.");
 				mre2.printStackTrace();
-				bundle = new DefaultResourceBundle();
+				bundle = new ResourceBundle() {
+					
+					@Override
+					protected Object handleGetObject(String key) {
+						return key;
+					}
+					
+					@SuppressWarnings("unchecked")
+					@Override
+					public Enumeration getKeys() {
+						return EMPTY_ENUMERATION;
+					}
+					
+					@SuppressWarnings("unchecked")
+					private final Enumeration EMPTY_ENUMERATION = new Enumeration() {
+						public boolean hasMoreElements() {
+							return false;
+						}
+						
+						public Object nextElement() {
+							throw new NoSuchElementException();
+						}
+					};
+				};
 			}
 		}
-		msg = bundle;
+		resourceBundle = bundle;
 	}
 }
