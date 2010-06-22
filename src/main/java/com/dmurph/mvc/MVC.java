@@ -34,7 +34,9 @@ import java.util.Queue;
 /**
  * This stores all the listener information, dispatches events
  * to the corresponding listeners.  To dispatch events use
- * {@link MVCEvent#dispatch()}.
+ * {@link MVCEvent#dispatch()}.</br>
+ * </br>
+ * Also, look at {@link #splitOff()}.
  * @author Daniel Murphy
  */
 public class MVC extends Thread{
@@ -42,6 +44,7 @@ public class MVC extends Thread{
 	private static final ThreadGroup mvcThreadGroup = new ThreadGroup("MVC Thread Group");
 	private static final ArrayList<MVC> mvcThreads = new ArrayList<MVC>();
 	private volatile static MVC mainThread = new MVC();
+	private volatile static IGlobalEventMonitor monitor = new WarningMonitor();
 	
 	private final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
@@ -126,7 +129,8 @@ public class MVC extends Thread{
 	}
 	
 	/**
-	 * Dispatch an event
+	 * Adds an event to the dispatch queue for the MVC thread.
+	 * Used by {@link MVCEvent#dispatch()}.
 	 * @param argEvent
 	 */
 	protected synchronized static void dispatchEvent( MVCEvent argEvent) {
@@ -136,6 +140,10 @@ public class MVC extends Thread{
 				if(mainThread.getState() == State.NEW){
 					mainThread.start();
 				}
+			}
+		}else{
+			if(monitor != null){
+				monitor.noListeners(argEvent);
 			}
 		}
 	}
@@ -155,7 +163,6 @@ public class MVC extends Thread{
 			if(thread == mainThread){
 				MVC old = mainThread;
 				mainThread = new MVC();
-
 				
 				for(MVCEvent event : old.eventQueue){
 					mainThread.eventQueue.add(event);
@@ -178,12 +185,36 @@ public class MVC extends Thread{
 	}
 	
 	/**
-	 * 
+	 * Sets the global event monitor, which is called before and after each event is
+	 * dispatched.
+	 * @param argMonitor
+	 * @see IGlobalEventMonitor
+	 */
+	public synchronized static void setGlobalEventMonitor(IGlobalEventMonitor argMonitor){
+		monitor = argMonitor;
+	}
+	
+	/**
+	 * Gets the global event monitor.  Default is {@link WarningMonitor}.
+	 * @return
+	 * @see IGlobalEventMonitor
+	 */
+	public synchronized static IGlobalEventMonitor getGlobalEventMonitor(){
+		return monitor;
+	}
+	
+	/**
+	 * Stops the dispatch thread, dispatching any remaining events
+	 * before cleanly returning.  Thread automatically gets started
+	 * when new events are dispatched
 	 */
 	public synchronized static void stopDispatchThread(){
 		mainThread.running = false;
 	}
 	
+	/**
+	 * Manually starts the dispatch thread.
+	 */
 	public synchronized static void startDispatchThread(){
 		if(mainThread.running){
 			return;
@@ -214,9 +245,15 @@ public class MVC extends Thread{
 	private synchronized void internalDispatchEvent(MVCEvent argEvent){
 		LinkedList<IEventListener> stack = listeners.get(argEvent.key);
 		
+		if(monitor != null){
+			monitor.beforeDispatch(argEvent);
+		}
 		Iterator<IEventListener> it = stack.iterator();
 		while(it.hasNext() && argEvent.isPropagating()){
 			it.next().eventReceived( argEvent);
+		}
+		if(monitor != null){
+			monitor.afterDispatch(argEvent);
 		}
 	}
 }
