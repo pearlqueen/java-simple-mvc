@@ -51,7 +51,7 @@ public class MVCEvent implements Serializable{
 	
 	/**
 	 * Stops the event from propagating to the rest of the listeners.  Listeners are stored
-	 * as a stack, so newer listeners recieve events first.
+	 * as a stack, so newer listeners receive events first.
 	 */
 	public void stopPropagation(){
 		propagate = false;

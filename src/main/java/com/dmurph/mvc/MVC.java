@@ -62,7 +62,7 @@ public class MVC extends Thread{
 	 * to that key, then nothing is done.
 	 * 
 	 * @param argKey
-	 * @param argReciever
+	 * @param argListener
 	 */
 	public synchronized static void addEventListener( String argKey, IEventListener argListener) {
 
@@ -116,7 +116,7 @@ public class MVC extends Thread{
 	 * removes a listener from the given key.
 	 * 
 	 * @param argKey
-	 * @param argReciever
+	 * @param argListener
 	 * @return true if the listener was removed, and false if it wasn't there to
 	 *         begin with
 	 */

@@ -42,7 +42,7 @@ public interface IGlobalEventMonitor {
 	 * Called with each event dispatched before dispatching event to
 	 * listening objects.
 	 * @param argEvent event about to be dispatched to listeners
-	 * @see {@link MVCEvent#stopPropagation()}
+	 * @see MVCEvent#stopPropagation()
 	 */
 	public void beforeDispatch(MVCEvent argEvent);
 	

@@ -36,7 +36,7 @@ import com.dmurph.mvc.MVCEvent;
 
 
 /**
- * Abstract controller.  Use {@link #registerCommand(String, IEventListener)} and {@link #registerCommand(String, String)}
+ * Abstract controller.  Use {@link #registerCommand(String, ICommand)} and {@link #registerCommand(String, String)}
  * to listen for events from the view objects.  The {@link #registerCommand(String, String)} method is
  * easier to use, as it will call a method for you when an event with the given key is dispatched.
  * @author Daniel Murphy
