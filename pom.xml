@@ -57,6 +57,15 @@
 							<goal>jar</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>generate-docs</id>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>{basedir}/docs</outputDirectory>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
