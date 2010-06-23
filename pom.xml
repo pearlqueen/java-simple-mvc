@@ -26,6 +26,7 @@
 			<id>toucansam99</id>
 			<name>Daniel Murphy</name>
 			<email>daniel@dmurph.com</email>
+			<url>http://www.dmurph.com</url>
 		</developer>
 	</developers>
 	<build>
@@ -56,15 +57,6 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
-					</execution>
-					<execution>
-						<id>generate-docs</id>
-						<goals>
-							<goal>javadoc</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>{basedir}/docs</outputDirectory>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
