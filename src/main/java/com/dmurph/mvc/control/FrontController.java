@@ -45,10 +45,13 @@ public abstract class FrontController{
 	
 	// for getting the method
 	private final Class<?> paramTypes[] = { MVCEvent.class };
-	private final HashMap<String, HashSet<ICommand>> keyToCommands;
+	private final HashSet<String> keys = new HashSet<String>();
+	private final HashMap<String, HashSet<Class<? extends ICommand>>> keyToCommands;
+	private final HashMap<String, HashSet<Method>> keyToMethods;
 	
 	public FrontController(){
-		keyToCommands = new HashMap<String, HashSet<ICommand>>();
+		keyToCommands = new HashMap<String, HashSet<Class<? extends ICommand>>>();
+		keyToMethods = new HashMap<String, HashSet<Method>>();
 	}
 	/**
 	 * Registers the listener to the given key. {@link MVCEvent}'s are dispatched globally, so 
@@ -56,22 +59,30 @@ public abstract class FrontController{
 	 * @param argKey
 	 * @param argCommand
 	 */
-	protected synchronized void registerCommand(String argKey, ICommand argCommand){
+	protected synchronized void registerCommand(String argKey, Class<? extends ICommand> argCommand){
 		if(argCommand == null){
 			throw new NullPointerException(I18n.getText("frontController.commandNull"));
 		}
 		if(argKey == null){
 			throw new NullPointerException(I18n.getText("frontController.keyNull"));
 		}
+		try {
+			argCommand.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(I18n.getText("frontController.makingCommand"), e);
+		}
 		
 		if(keyToCommands.containsKey(argKey)){
 			keyToCommands.get(argKey).add(argCommand);
 		}else{
-			HashSet<ICommand> commands = new HashSet<ICommand>();
+			HashSet<Class<? extends ICommand>> commands = new HashSet<Class<? extends ICommand>>();
 			commands.add(argCommand);
-			FrontControllerEventListener listener = new FrontControllerEventListener(this);
-			MVC.addEventListener(argKey, listener);
 			keyToCommands.put(argKey, commands);
+			if(!keys.contains(argKey)){
+				FrontControllerEventListener listener = new FrontControllerEventListener(this);
+				MVC.addEventListener(argKey, listener);
+				keys.add(argKey);
+			}
 		}
 	}
 	
@@ -85,101 +96,79 @@ public abstract class FrontController{
 	 * @throws NoSuchMethodException 
 	 * @throws SecurityException 
 	 */
-	protected synchronized void registerCommand(String argKey, String argCommandMethod) throws SecurityException, NoSuchMethodException{
+	protected synchronized void registerCommand(String argKey, String argCommandMethod){
 		if(argKey == null){
 			throw new NullPointerException(I18n.getText("frontController.keyNull"));
 		}
 		if(argCommandMethod == null){
 			throw new NullPointerException(I18n.getText("frontController.commandNull"));
 		}
+		HashSet<Method> set;
+		if(keyToMethods.containsKey(argKey)){
+			set = keyToMethods.get(argKey);
+		}else{
+			set = new HashSet<Method>();
+			keyToMethods.put(argKey, set);
+		}
 		
-		Method m = getClass().getMethod( argCommandMethod, paramTypes);
+		try{
+			set.add(getClass().getMethod( argCommandMethod, paramTypes));
+		}catch(Exception e){
+			throw new RuntimeException(I18n.getText("frontController.findingMethod",argCommandMethod), e);
+		}
 		
-		MethodCommand mCommand = new MethodCommand(this, m);
-		registerCommand(argKey, mCommand);
+		if(!keys.contains(argKey)){
+			FrontControllerEventListener listener = new FrontControllerEventListener(this);
+			MVC.addEventListener(argKey, listener);
+			keys.add(argKey);
+		}
 	}
 	
 	private static class FrontControllerEventListener implements IEventListener{
-		private final FrontController controller;
+		FrontController controller;
 		
-		public FrontControllerEventListener(FrontController argController) {
+		public FrontControllerEventListener(FrontController argController){
 			controller = argController;
 		}
 		
 		@Override
 		public void eventReceived( MVCEvent argEvent) {
-			HashSet<ICommand> commands = controller.keyToCommands.get(argEvent.key);
+			HashSet<Class<? extends ICommand>> commands = controller.keyToCommands.get(argEvent.key);
 			
-			for(ICommand command : commands){
-				command.execute(argEvent);
+			if(commands != null){
+				for(Class<? extends ICommand> commandClass : commands){
+					ICommand command;
+					try {
+						command = commandClass.newInstance();
+					} catch (Exception e){
+						// shouldn't happen
+						System.err.println(e.getLocalizedMessage());
+						e.printStackTrace();
+						continue;
+					}
+					
+					command.execute(argEvent);
+				}
 			}
-		}
-	}
-	
-	private static class MethodCommand implements ICommand {
-		private final FrontController controller;
-		private final Method method;
-		
-		public MethodCommand(FrontController argController, Method argMethod){
-			controller = argController;
-			method = argMethod;
-		}
-
-		/**
-		 * @see com.dmurph.mvc.control.ICommand#execute(com.dmurph.mvc.MVCEvent)
-		 */
-		@Override
-		public void execute(MVCEvent argEvent) {
-			try {
-				method.invoke( controller, argEvent);
-			} catch ( IllegalArgumentException e) {
-				System.err.println(I18n.getText("frontController.invokingMethod", method.toString()));
-				e.printStackTrace();
-			} catch ( IllegalAccessException e) {
-				System.err.println(I18n.getText("frontController.invokingMethod", method.toString()));
-				e.printStackTrace();
-			} catch ( InvocationTargetException e) {
-				System.err.println(I18n.getText("frontController.invokingMethod", method.toString()));
-				e.printStackTrace();
+			
+			HashSet<Method> methods = controller.keyToMethods.get(argEvent.key);
+			
+			if(methods != null){
+				for(Method m : methods){
+					try {
+							m.invoke(controller, argEvent);
+					} catch ( IllegalArgumentException e) {
+						System.err.println(I18n.getText("frontController.invokingMethod", m.toString()));
+						e.printStackTrace();
+					} catch ( IllegalAccessException e) {
+						System.err.println(I18n.getText("frontController.invokingMethod", m.toString()));
+						e.printStackTrace();
+					} catch ( InvocationTargetException e) {
+						System.err.println(I18n.getText("frontController.invokingMethod", m.toString()));
+						e.printStackTrace();
+					}
+				}
 			}
-		}
-		
-		/**
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((method == null) ? 0 : method.hashCode());
-			return result;
-		}
-
-		/**
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			MethodCommand other = (MethodCommand) obj;
-			if (controller == null) {
-				if (other.controller != null)
-					return false;
-			}
-			else if (!controller.equals(other.controller))
-				return false;
-			if (method == null) {
-				if (other.method != null)
-					return false;
-			}
-			else if (!method.equals(other.method))
-				return false;
-			return true;
 		}
 	}
 }
