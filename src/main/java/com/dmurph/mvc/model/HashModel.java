@@ -149,7 +149,7 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertable){
-				((IRevertable) mp.prop).revertChanges();
+				ret = ret || ((IRevertable) mp.prop).revertChanges();
 			}
 		}
 		setProperty(DIRTY, false);
@@ -166,7 +166,7 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertable){
-				((IRevertable) mp.prop).saveChanges();
+				ret = ret || ((IRevertable) mp.prop).saveChanges();
 			}
 		}
 		return ret;
