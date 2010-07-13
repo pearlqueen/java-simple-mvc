@@ -11,7 +11,7 @@ import com.dmurph.mvc.IRevertable;
 
 /**
  * Model that stores all properties in a HashMap, so all {@link IDirtyable}, {@link ICloneable}, and
- * {@link IRevertable} functionality is handled internally.  
+ * {@link IRevertable} functionality is handled internally.
  * @author Daniel Murphy
  *
  */
@@ -146,6 +146,12 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 	@Override
 	public boolean revertChanges() {
 		boolean ret = super.revertChanges();
+		for(String key: propertyMap.keySet()){
+			ModelProperty mp = propertyMap.get(key);
+			if(mp.prop instanceof IRevertable){
+				((IRevertable) mp.prop).revertChanges();
+			}
+		}
 		setProperty(DIRTY, false);
 		return ret;
 	}
@@ -157,6 +163,12 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 	public boolean saveChanges() {
 		boolean ret = super.saveChanges();
 		setProperty(DIRTY, false);
+		for(String key: propertyMap.keySet()){
+			ModelProperty mp = propertyMap.get(key);
+			if(mp.prop instanceof IRevertable){
+				((IRevertable) mp.prop).saveChanges();
+			}
+		}
 		return ret;
 	}
 	
