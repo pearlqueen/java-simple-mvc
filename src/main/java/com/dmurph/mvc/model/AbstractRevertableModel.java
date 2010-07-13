@@ -112,8 +112,9 @@ public abstract class AbstractRevertableModel extends AbstractModel implements I
 	 * 						  given to the {@link #firePropertyChange(String, Object, Object)}
 	 * 						  method
 	 * @param argValue the value to set the property
+	 * @return the old value
 	 */
-	protected abstract void setProperty(String argPropertyName, Object argValue);
+	protected abstract Object setProperty(String argPropertyName, Object argValue);
 	
 	
 	/**

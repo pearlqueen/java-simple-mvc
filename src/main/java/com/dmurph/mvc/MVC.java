@@ -44,7 +44,7 @@ public class MVC extends Thread{
 	private static final ThreadGroup mvcThreadGroup = new ThreadGroup("MVC Thread Group");
 	private static final ArrayList<MVC> mvcThreads = new ArrayList<MVC>();
 	private volatile static MVC mainThread = new MVC();
-	private volatile static IGlobalEventMonitor monitor = new WarningMonitor();
+	private volatile static IGlobalEventMonitor monitor;
 	
 	private final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
@@ -55,6 +55,7 @@ public class MVC extends Thread{
 	private MVC() {
 		super(mvcThreadGroup, "MVC Thread #"+(threadCounter++));
 		mvcThreads.add(this);
+		monitor = new WarningMonitor();
 	}
 
 	/**

@@ -31,9 +31,7 @@ import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.model.AbstractDirtyableModel;
 
 /**
- * A {@link HashSet} that implements {@link ICloneable} and {@link IDirtyable} for use with {@link AbstractDirtyableModel}.
- * Unlike the proper implementation of {@link IDirtyable}, this class will only keep track of if the set is dirty or not,
- * it will not revert changes.
+ * A {@link HashSet} that implements {@link ICloneable} and {@link IDirtyable} for use with the models.
  * 
  * TODO implement reverting changes, saving, etc
  * @author Daniel Murphy

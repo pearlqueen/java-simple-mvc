@@ -33,7 +33,6 @@ import com.dmurph.mvc.IDirtyable;
  * {@link ICloneable} and {@link IDirtyable} Array List.  Will clone all values that
  * implement {@link ICloneable} in the {@link #clone()} and {@link #cloneFrom(ICloneable)} methods.
  * 
- * TODO reverting changes, saving, etc
  * @author Daniel Murphy
  */
 public class MVCArrayList<E extends Object> extends ArrayList<E> implements ICloneable, IDirtyable {
