@@ -24,10 +24,14 @@
  */
 package com.dmurph.mvc.util;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
+import com.dmurph.mvc.IModel;
+import com.dmurph.mvc.IRevertable;
 
 /**
  * {@link ICloneable} and {@link IDirtyable} Array List.  Will clone all values that
@@ -35,41 +39,63 @@ import com.dmurph.mvc.IDirtyable;
  * 
  * @author Daniel Murphy
  */
-public class MVCArrayList<E extends Object> extends ArrayList<E> implements ICloneable, IDirtyable {
+public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertable {
 	private static final long serialVersionUID = 4890270966369581329L;
 	
+	private static final String DIRTY = "ARRAY_LIST_DIRTY";
 	private boolean dirty = false;
 	
+	private final ArrayList<E> orig = new ArrayList<E>();
+	private final PropertyChangeSupport propertyChangeSupport;
+	
+    public MVCArrayList(){
+        propertyChangeSupport = new PropertyChangeSupport(this);
+    }
+    
 	@Override
 	public boolean add(E e) {
+		boolean ret = super.add(e);
+		boolean old = dirty;
 		dirty = true;
-		return super.add(e);
+		firePropertyChange(DIRTY, old, dirty);
+		return ret;
 	}
 	
 	@Override
 	public void clear() {
 		if(size() > 0){
+			boolean old = dirty;
 			dirty = true;
+			firePropertyChange(DIRTY, old, dirty);
+			super.clear();
 		}
-		super.clear();
 	}
 	
 	@Override
 	public E remove(int index) {
+		E ret = super.remove(index);
+		boolean old = dirty;
 		dirty = true;
-		return super.remove(index);
+		firePropertyChange(DIRTY, old, dirty);
+		return ret;
 	}
 	
 	@Override
 	public boolean remove(Object o) {
+		boolean ret = super.remove(o);
+		boolean old = dirty;
 		dirty = true;
-		return super.remove( o);
+		firePropertyChange(DIRTY, old, dirty);
+		return ret;
 	}
 	
 	@Override
 	public E set(int index, E element) {
+		E ret = super.set(index, element);
+		boolean old = dirty;
 		dirty = true;
-		return super.set( index, element);
+		firePropertyChange(DIRTY, old, dirty);
+		return ret;
 	}
 	
 	/**
@@ -81,7 +107,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IClo
 	@SuppressWarnings("unchecked")
 	@Override
 	public void cloneFrom( ICloneable argOther) {
-		ArrayList<E> other = (ArrayList<E>) argOther;
+		MVCArrayList<E> other = (MVCArrayList<E>) argOther;
 		clear();
 		for(E e : other){
 			if(e instanceof ICloneable){
@@ -90,7 +116,56 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IClo
 				add(e);
 			}
 		}
+		orig.clear();
+		for(E e : other.orig){
+			if(e instanceof ICloneable){
+				orig.add((E) ((ICloneable) e).clone());
+			}else{
+				orig.add(e);
+			}
+		}
 	}
+	
+	// do shallow clone, need to keep object references
+	private void cloneFromOrig(){
+		clear();
+		for(E e: orig){
+			add(e);
+		}
+	}
+	
+	// do shallow clone, need to keep object references
+	private void cloneToOrig(){
+		orig.clear();
+		for(E e: this){
+			orig.add(e);
+		}
+	}
+	
+	 /**
+	 * @see com.dmurph.mvc.IModel#addPropertyChangeListener(java.beans.PropertyChangeListener)
+	 */
+    public void addPropertyChangeListener(PropertyChangeListener argListener) {
+        propertyChangeSupport.addPropertyChangeListener(argListener);
+    }
+
+    /**
+	 * @see com.dmurph.mvc.IModel#removePropertyChangeListener(java.beans.PropertyChangeListener)
+	 */
+    public void removePropertyChangeListener(PropertyChangeListener argListener) {
+        propertyChangeSupport.removePropertyChangeListener(argListener);
+    }
+
+    /**
+     * Fires a property change event.  If the argOldValue == argNewValue
+     * or argOldValue.equals( argNewValue) then no event is thrown.
+     * @param argPropertyName property name, should match the get and set methods for property name
+     * @param argOldValue
+     * @param argNewValue
+     */
+    private void firePropertyChange(String argPropertyName, Object argOldValue, Object argNewValue) {
+        propertyChangeSupport.firePropertyChange(argPropertyName, argOldValue, argNewValue);
+    }
 
 	/**
 	 * Clones this object to another {@link MVCArrayList}.  If the array values
@@ -102,7 +177,6 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IClo
 	public ICloneable clone(){
 		MVCArrayList<E> other = new MVCArrayList<E>();
 		other.cloneFrom(this);
-		other.setDirty(false);
 		return other;
 	}
 
@@ -111,7 +185,17 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IClo
 	 */
 	@Override
 	public boolean isDirty() {
-		return dirty;
+		if(dirty){
+			return true;
+		}
+		for(E e : this){
+			if(e instanceof IDirtyable){
+				if(((IDirtyable) e).isDirty()){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -122,6 +206,41 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IClo
 	public boolean setDirty( boolean argDirty) {
 		boolean oldDirty = dirty;
 		dirty = argDirty;
+		firePropertyChange(DIRTY, oldDirty, dirty);
 		return oldDirty;
+	}
+
+	/**
+	 * @see com.dmurph.mvc.IRevertable#revertChanges()
+	 */
+	@Override
+	public boolean revertChanges() {
+		if(!isDirty()){
+			return false;
+		}
+		cloneFromOrig();
+		for(E e: this){
+			if(e instanceof IRevertable){
+				((IRevertable) e).revertChanges();
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @see com.dmurph.mvc.IRevertable#saveChanges()
+	 */
+	@Override
+	public boolean saveChanges() {
+		if(!isDirty()){
+			return false;
+		}
+		cloneToOrig();
+		for(E e: this){
+			if(e instanceof IRevertable){
+				((IRevertable) e).saveChanges();
+			}
+		}
+		return true;
 	}
 }

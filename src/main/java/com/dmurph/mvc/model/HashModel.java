@@ -16,6 +16,8 @@ import com.dmurph.mvc.IRevertable;
  *
  */
 public class HashModel extends AbstractRevertableModel implements IDirtyable, ICloneable, IRevertable{
+	private static final long serialVersionUID = 1L;
+
 	public static final String DIRTY = "HASH_MODEL_DIRTY";
 	
 	private final HashMap<String, ModelProperty> propertyMap = new HashMap<String, ModelProperty>();
@@ -49,6 +51,12 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 		propertyMap.put(argKey, mp);
 	}
 	
+	protected synchronized void registerProperty(String[] argKeys, PropertyType argType){
+		for(String s: argKeys){
+			registerProperty(s, argType, null);
+		}
+	}
+	
 	/**
 	 * @see com.dmurph.mvc.model.AbstractRevertableModel#setProperty(java.lang.String, java.lang.Object)
 	 */
@@ -74,7 +82,7 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 			return setProperty(argKey, argProperty);
 		}
 	}
-	
+		
 	/**
 	 * 
 	 * @param argKey
@@ -84,6 +92,15 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 		ModelProperty mp = propertyMap.get(argKey);
 		if(mp != null){
 			return mp.prop;
+		}else{
+			return null;
+		}
+	}
+	
+	public synchronized PropertyType getPropertyType(String argKey){
+		ModelProperty mp = propertyMap.get(argKey);
+		if(mp != null){
+			return mp.type;
 		}else{
 			return null;
 		}
@@ -139,12 +156,35 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 			return o;
 		}
 	}
+	
+	/**
+	 * @see com.dmurph.mvc.model.AbstractRevertableModel#isDirty()
+	 */
+	@Override
+	public boolean isDirty() {
+		boolean ret = super.isDirty();
+		if(ret){
+			return ret;
+		}
+		for(String key: propertyMap.keySet()){
+			ModelProperty mp = propertyMap.get(key);
+			if(mp.prop instanceof IDirtyable){
+				ret = ret || ((IRevertable) mp.prop).revertChanges();
+				if(ret){
+					setProperty(DIRTY, ret);
+					return ret;
+				}
+			}
+		}
+		setProperty(DIRTY, ret);
+		return ret;
+	}
 
 	/**
 	 * @see com.dmurph.mvc.model.AbstractRevertableModel#revertChanges()
 	 */
 	@Override
-	public boolean revertChanges() {
+	public synchronized boolean revertChanges() {
 		boolean ret = super.revertChanges();
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
@@ -160,7 +200,7 @@ public class HashModel extends AbstractRevertableModel implements IDirtyable, IC
 	 * @see com.dmurph.mvc.model.AbstractRevertableModel#saveChanges()
 	 */
 	@Override
-	public boolean saveChanges() {
+	public synchronized boolean saveChanges() {
 		boolean ret = super.saveChanges();
 		setProperty(DIRTY, false);
 		for(String key: propertyMap.keySet()){

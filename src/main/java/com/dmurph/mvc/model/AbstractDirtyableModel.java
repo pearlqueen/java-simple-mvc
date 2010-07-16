@@ -24,16 +24,17 @@
  */
 package com.dmurph.mvc.model;
 
-import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 
 /**
  * Keeps track of if a model is dirty through calling the methods {@link #setDirty(boolean)}
- * and {@link #firePropertyChange(String, Object, Object)}.
+ * and {@link #firePropertyChange(String, Object, Object)}.  This class also fires a property
+ * change event when the dirty property changes, with the key <code>"dirty"</code>
  * @author Daniel Murphy
  */
-public abstract class AbstractDirtyableModel extends AbstractModel implements IDirtyable, ICloneable {
-
+public abstract class AbstractDirtyableModel extends AbstractModel implements IDirtyable {
+	private static final long serialVersionUID = 1L;
+	
 	private boolean dirty = false;
 	
     /**
@@ -52,6 +53,7 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	public boolean setDirty(boolean argDirty){
 		boolean oldDirty = dirty;
 		dirty = argDirty;
+		super.firePropertyChange("dirty", oldDirty, dirty);
 		return oldDirty;
 	}
 	
@@ -61,14 +63,10 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	@Override
 	protected void firePropertyChange(String argPropertyName, Object argOldValue, Object argNewValue) {
 		if(argOldValue != null && !argOldValue.equals(argNewValue)){
-			dirty = true;
+			setDirty(true);
 		}else if(argNewValue == null && argNewValue != null){
-			dirty = true;
+			setDirty(true);
 		}
 		super.firePropertyChange(argPropertyName, argOldValue, argNewValue);
 	}
-	/**
-	 * @see ICloneable#clone()
-	 */
-	public abstract ICloneable clone();
 }

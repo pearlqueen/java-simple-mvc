@@ -24,7 +24,9 @@ package com.dmurph.mvc.model;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.Serializable;
 
+import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.util.MVCArrayList;
 
 /**
@@ -40,7 +42,8 @@ import com.dmurph.mvc.util.MVCArrayList;
  * @see AbstractDirtyableModel
  * @author Daniel Murphy
  */
-public abstract class AbstractModel{
+public abstract class AbstractModel implements Serializable, IModel{
+	private static final long serialVersionUID = 1L;
 	protected final PropertyChangeSupport propertyChangeSupport;
 		
     public AbstractModel(){
@@ -48,17 +51,15 @@ public abstract class AbstractModel{
     }
 
     /**
-     * Adds a property change listener to this model
-     * @param argListener
-     */
+	 * @see com.dmurph.mvc.IModel#addPropertyChangeListener(java.beans.PropertyChangeListener)
+	 */
     public void addPropertyChangeListener(PropertyChangeListener argListener) {
         propertyChangeSupport.addPropertyChangeListener(argListener);
     }
 
     /**
-     * Removes a property change listener to this model
-     * @param argListener
-     */
+	 * @see com.dmurph.mvc.IModel#removePropertyChangeListener(java.beans.PropertyChangeListener)
+	 */
     public void removePropertyChangeListener(PropertyChangeListener argListener) {
         propertyChangeSupport.removePropertyChangeListener(argListener);
     }

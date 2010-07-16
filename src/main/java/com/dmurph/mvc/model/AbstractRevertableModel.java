@@ -26,7 +26,6 @@ package com.dmurph.mvc.model;
 
 import java.util.HashMap;
 
-import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IRevertable;
 
@@ -40,8 +39,9 @@ import com.dmurph.mvc.IRevertable;
  * they have changed.
  * @author Daniel Murphy
  */
-public abstract class AbstractRevertableModel extends AbstractModel implements IDirtyable, ICloneable, IRevertable{
-
+public abstract class AbstractRevertableModel extends AbstractModel implements IDirtyable, IRevertable{
+	private static final long serialVersionUID = 1L;
+	
 	private HashMap<String, PropertyWrapper> propertyMap = new HashMap<String, PropertyWrapper>();
 	private boolean overridingDirty = false;
 	
@@ -149,11 +149,6 @@ public abstract class AbstractRevertableModel extends AbstractModel implements I
 		}
 		return reverted;
 	}
-	
-	/**
-	 * @see ICloneable#clone()
-	 */
-	public abstract ICloneable clone();
 	
 	private static class PropertyWrapper{
 		String name = null;
