@@ -34,15 +34,18 @@ import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertable;
 
 /**
- * {@link ICloneable} and {@link IDirtyable} Array List.  Will clone all values that
- * implement {@link ICloneable} in the {@link #clone()} and {@link #cloneFrom(ICloneable)} methods.
+ * A full mvc implementation of an arraylist.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
+ * and {@link IRevertable}.  Also fires property change events when the dirty variable is changed.
  * 
  * @author Daniel Murphy
  */
 public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertable {
 	private static final long serialVersionUID = 4890270966369581329L;
 	
-	private static final String DIRTY = "ARRAY_LIST_DIRTY";
+	/**
+	 * Dirty property name.
+	 */
+	public static final String DIRTY = "ARRAY_LIST_DIRTY";
 	private boolean dirty = false;
 	
 	private final ArrayList<E> orig = new ArrayList<E>();
