@@ -34,8 +34,9 @@ import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertable;
 
 /**
- * A full mvc implementation of an arraylist.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
- * and {@link IRevertable}.  Also fires property change events when the dirty variable is changed.
+ * A full mvc implementation of an {@link ArrayList}.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
+ * and {@link IRevertable}.  Also fires property change events for the size of the array ({@link #SIZE}) and the dirty value
+ * ({@link #DIRTY}), and if an element in the array changed ({@link #ELEMENT}).
  * 
  * @author Daniel Murphy
  */
@@ -43,12 +44,24 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	private static final long serialVersionUID = 4890270966369581329L;
 	
 	/**
-	 * Dirty property name.
+	 * Dirty property name for listening to property change events
+	 * @see #addPropertyChangeListener(PropertyChangeListener)
 	 */
 	public static final String DIRTY = "ARRAY_LIST_DIRTY";
+	/**
+	 * Array size property name for listening to property change events
+	 * @see #addPropertyChangeListener(PropertyChangeListener)
+	 */
+	public static final String SIZE = "ARRAY_LIST_SIZE";
+	/**
+	 * A value in the array was changed.
+	 * @see #addPropertyChangeListener(PropertyChangeListener)
+	 */
+	public static final String ELEMENT = "ARRAY_LIST_ELEMENT_CHANGED";
+	
 	private boolean dirty = false;
 	
-	private final ArrayList<E> orig = new ArrayList<E>();
+	private final ArrayList<E> saved = new ArrayList<E>();
 	private final PropertyChangeSupport propertyChangeSupport;
 	
     public MVCArrayList(){
@@ -58,6 +71,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	@Override
 	public boolean add(E e) {
 		boolean ret = super.add(e);
+		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -67,16 +81,19 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	@Override
 	public void clear() {
 		if(size() > 0){
+			int oldSize = size();
+			super.clear();
+			firePropertyChange(SIZE, oldSize, 0);
 			boolean old = dirty;
 			dirty = true;
 			firePropertyChange(DIRTY, old, dirty);
-			super.clear();
 		}
 	}
 	
 	@Override
 	public E remove(int index) {
 		E ret = super.remove(index);
+		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -86,6 +103,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	@Override
 	public boolean remove(Object o) {
 		boolean ret = super.remove(o);
+		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -95,6 +113,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	@Override
 	public E set(int index, E element) {
 		E ret = super.set(index, element);
+		firePropertyChange(ELEMENT, ret, element);
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -119,29 +138,30 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 				add(e);
 			}
 		}
-		orig.clear();
-		for(E e : other.orig){
+		saved.clear();
+		for(E e : other.saved){
 			if(e instanceof ICloneable){
-				orig.add((E) ((ICloneable) e).clone());
+				saved.add((E) ((ICloneable) e).clone());
 			}else{
-				orig.add(e);
+				saved.add(e);
 			}
 		}
+		this.dirty = other.dirty;
 	}
 	
 	// do shallow clone, need to keep object references
-	private void cloneFromOrig(){
+	private void setFromSaved(){
 		clear();
-		for(E e: orig){
+		for(E e: saved){
 			add(e);
 		}
 	}
 	
 	// do shallow clone, need to keep object references
-	private void cloneToOrig(){
-		orig.clear();
+	private void setToSaved(){
+		saved.clear();
 		for(E e: this){
-			orig.add(e);
+			saved.add(e);
 		}
 	}
 	
@@ -184,6 +204,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	}
 
 	/**
+	 * Also chacks to see if elements in this
+	 * array are dirty, if any are {@link IDirtyable}.
 	 * @see com.dmurph.mvc.IDirtyable#isDirty()
 	 */
 	@Override
@@ -202,18 +224,29 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	}
 
 	/**
-	 * Just sets the dirty variable
+	 * Sets the dirty variable and, if argDirty is false,
+	 * then will call {@link IDirtyable#setDirty(boolean)} on
+	 * all {@link IDirtyable} objects in this array.
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
 	@Override
 	public boolean setDirty( boolean argDirty) {
 		boolean oldDirty = dirty;
 		dirty = argDirty;
+		if(!dirty){
+			for(E e: this){
+				if(e instanceof IDirtyable){
+					((IDirtyable) e).setDirty(dirty);
+				}
+			}
+		}
 		firePropertyChange(DIRTY, oldDirty, dirty);
 		return oldDirty;
 	}
 
 	/**
+	 * Also calls {@link IRevertable#revertChanges()} on all
+	 * objects in the reverted array that are {@link IRevertable}.
 	 * @see com.dmurph.mvc.IRevertable#revertChanges()
 	 */
 	@Override
@@ -221,7 +254,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		if(!isDirty()){
 			return false;
 		}
-		cloneFromOrig();
+		setFromSaved();
 		for(E e: this){
 			if(e instanceof IRevertable){
 				((IRevertable) e).revertChanges();
@@ -231,6 +264,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	}
 
 	/**
+	 * Also calls {@link IRevertable#saveChanges()()} on all
+	 * objects in the reverted array that are {@link IRevertable}.
 	 * @see com.dmurph.mvc.IRevertable#saveChanges()
 	 */
 	@Override
@@ -238,7 +273,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		if(!isDirty()){
 			return false;
 		}
-		cloneToOrig();
+		setToSaved();
 		for(E e: this){
 			if(e instanceof IRevertable){
 				((IRevertable) e).saveChanges();
