@@ -27,7 +27,7 @@ package com.dmurph.mvc.model;
 import java.util.HashMap;
 
 import com.dmurph.mvc.IDirtyable;
-import com.dmurph.mvc.IRevertable;
+import com.dmurph.mvc.IRevertible;
 
 /**
  * This model keeps track of original and changed property values through the 
@@ -39,7 +39,7 @@ import com.dmurph.mvc.IRevertable;
  * they have changed.
  * @author Daniel Murphy
  */
-public abstract class AbstractRevertableModel extends AbstractModel implements IDirtyable, IRevertable{
+public abstract class AbstractRevertibleModel extends AbstractModel implements IDirtyable, IRevertible{
 	private static final long serialVersionUID = 1L;
 	
 	private HashMap<String, PropertyWrapper> propertyMap = new HashMap<String, PropertyWrapper>();
@@ -118,7 +118,7 @@ public abstract class AbstractRevertableModel extends AbstractModel implements I
 	
 	
 	/**
-	 * @see com.dmurph.mvc.IRevertable#saveChanges()
+	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
 	@Override
 	public boolean saveChanges() {
@@ -134,7 +134,7 @@ public abstract class AbstractRevertableModel extends AbstractModel implements I
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.IRevertable#revertChanges()
+	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
 	@Override
 	public boolean revertChanges() {

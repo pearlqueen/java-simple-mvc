@@ -29,7 +29,7 @@ package com.dmurph.mvc;
  * can be "canceled".
  * @author Daniel Murphy
  */
-public interface IRevertable {
+public interface IRevertible {
 
 	/**
 	 * Saves the current changes to the model so

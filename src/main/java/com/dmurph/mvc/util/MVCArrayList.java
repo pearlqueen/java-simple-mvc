@@ -24,6 +24,7 @@
  */
 package com.dmurph.mvc.util;
 
+import java.beans.IndexedPropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
@@ -31,30 +32,40 @@ import java.util.ArrayList;
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
-import com.dmurph.mvc.IRevertable;
+import com.dmurph.mvc.IRevertible;
 
 /**
  * A full mvc implementation of an {@link ArrayList}.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
- * and {@link IRevertable}.  Also fires property change events for the size of the array ({@link #SIZE}) and the dirty value
- * ({@link #DIRTY}), and if an element in the array changed ({@link #ELEMENT}).
+ * and {@link IRevertible}.  Also fires property change events for the size of the array ({@link #SIZE}) and the dirty value
+ * ({@link IModel#DIRTY}), and if an element in the array changed ({@link #ELEMENT}).
  * 
  * @author Daniel Murphy
  */
-public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertable {
+public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertible {
 	private static final long serialVersionUID = 4890270966369581329L;
 	
-	/**
-	 * Dirty property name for listening to property change events
-	 * @see #addPropertyChangeListener(PropertyChangeListener)
-	 */
-	public static final String DIRTY = "ARRAY_LIST_DIRTY";
 	/**
 	 * Array size property name for listening to property change events
 	 * @see #addPropertyChangeListener(PropertyChangeListener)
 	 */
 	public static final String SIZE = "ARRAY_LIST_SIZE";
+	
 	/**
-	 * A value in the array was changed.
+	 * Not exactly a property, but the name of the property when an element
+	 * is removed from the array.  The {@link IndexedPropertyChangeEvent#getIndex()}
+	 * cooresponds to the index that was removed, and is -1 if {@link #remove(Object)}
+	 * is called (we don't know the index).
+	 */
+	public static final String REMOVED = "ARRAY_LIST_REMOVED";
+	
+	/**
+	 * Not exactly a property, but the name of the property when an element
+	 * is inserted into the array.  This fires an {@link IndexedPropertyChangeEvent}.
+	 */
+	public static final String INSERTED = "ARRAY_LIST_INSERT";
+	/**
+	 * A value in the array was changed.  This fires an
+	 * {@link IndexedPropertyChangeEvent}.
 	 * @see #addPropertyChangeListener(PropertyChangeListener)
 	 */
 	public static final String ELEMENT = "ARRAY_LIST_ELEMENT_CHANGED";
@@ -78,11 +89,26 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		return ret;
 	}
 	
+	public void add(int index, E element) {
+		super.add(index, element);
+		propertyChangeSupport.fireIndexedPropertyChange(INSERTED, index, null, element);
+		boolean old = dirty;
+		dirty = true;
+		firePropertyChange(DIRTY, old, dirty);
+	}
+	
+	private final ArrayList<E> temp = new ArrayList<E>();
+	
 	@Override
 	public void clear() {
 		if(size() > 0){
 			int oldSize = size();
+			temp.clear();
+			temp.addAll(this);
 			super.clear();
+			for(int i=0; i<temp.size(); i++){
+				propertyChangeSupport.fireIndexedPropertyChange(REMOVED, i, temp.get(i), null);
+			}
 			firePropertyChange(SIZE, oldSize, 0);
 			boolean old = dirty;
 			dirty = true;
@@ -93,6 +119,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	@Override
 	public E remove(int index) {
 		E ret = super.remove(index);
+		propertyChangeSupport.fireIndexedPropertyChange(REMOVED, index, ret, null);
 		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
@@ -103,17 +130,20 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	@Override
 	public boolean remove(Object o) {
 		boolean ret = super.remove(o);
-		firePropertyChange(SIZE, size() - 1, size());
-		boolean old = dirty;
-		dirty = true;
-		firePropertyChange(DIRTY, old, dirty);
+		if(ret){
+			propertyChangeSupport.fireIndexedPropertyChange(REMOVED, -1, o, null);
+			firePropertyChange(SIZE, size() - 1, size());
+			boolean old = dirty;
+			dirty = true;
+			firePropertyChange(DIRTY, old, dirty);
+		}
 		return ret;
 	}
 	
 	@Override
 	public E set(int index, E element) {
 		E ret = super.set(index, element);
-		firePropertyChange(ELEMENT, ret, element);
+		propertyChangeSupport.fireIndexedPropertyChange(ELEMENT, index, ret, element);
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -179,13 +209,6 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
         propertyChangeSupport.removePropertyChangeListener(argListener);
     }
 
-    /**
-     * Fires a property change event.  If the argOldValue == argNewValue
-     * or argOldValue.equals( argNewValue) then no event is thrown.
-     * @param argPropertyName property name, should match the get and set methods for property name
-     * @param argOldValue
-     * @param argNewValue
-     */
     private void firePropertyChange(String argPropertyName, Object argOldValue, Object argNewValue) {
         propertyChangeSupport.firePropertyChange(argPropertyName, argOldValue, argNewValue);
     }
@@ -245,9 +268,9 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	}
 
 	/**
-	 * Also calls {@link IRevertable#revertChanges()} on all
-	 * objects in the reverted array that are {@link IRevertable}.
-	 * @see com.dmurph.mvc.IRevertable#revertChanges()
+	 * Also calls {@link IRevertible#revertChanges()} on all
+	 * objects in the reverted array that are {@link IRevertible}.
+	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
 	@Override
 	public boolean revertChanges() {
@@ -256,8 +279,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		}
 		setFromSaved();
 		for(E e: this){
-			if(e instanceof IRevertable){
-				((IRevertable) e).revertChanges();
+			if(e instanceof IRevertible){
+				((IRevertible) e).revertChanges();
 			}
 		}
 		return true;
@@ -265,8 +288,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 
 	/**
 	 * Also calls {@link IRevertable#saveChanges()()} on all
-	 * objects in the reverted array that are {@link IRevertable}.
-	 * @see com.dmurph.mvc.IRevertable#saveChanges()
+	 * objects in the reverted array that are {@link IRevertible}.
+	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
 	@Override
 	public boolean saveChanges() {
@@ -275,8 +298,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		}
 		setToSaved();
 		for(E e: this){
-			if(e instanceof IRevertable){
-				((IRevertable) e).saveChanges();
+			if(e instanceof IRevertible){
+				((IRevertible) e).saveChanges();
 			}
 		}
 		return true;

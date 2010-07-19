@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
  */
 public interface IModel {
 	
+	public static final String DIRTY = "MODEL_DIRTY";
 	/**
 	 * Adds a property change listener to this model
 	 * @param argListener
