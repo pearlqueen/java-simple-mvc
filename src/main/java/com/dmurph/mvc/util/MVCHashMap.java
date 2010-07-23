@@ -30,6 +30,7 @@ import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 
 /**
+ * TODO implement like {@link MVCArrayList}, with revertible support and property events
  * @author Daniel Murphy
  */
 public class MVCHashMap<K, V> extends HashMap<K, V> implements ICloneable, IDirtyable{

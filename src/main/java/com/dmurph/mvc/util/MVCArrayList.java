@@ -37,7 +37,15 @@ import com.dmurph.mvc.IRevertible;
 /**
  * A full mvc implementation of an {@link ArrayList}.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
  * and {@link IRevertible}.  Also fires property change events for the size of the array ({@link #SIZE}) and the dirty value
- * ({@link IModel#DIRTY}), and if an element in the array changed ({@link #ELEMENT}).
+ * ({@link IModel#DIRTY}), and if an element in the array changed ({@link #ELEMENT}).<br/>
+ * <br/>
+ * This class also will forward all calls to it's
+ * members if implement the associated interface.  For example, if {@link #revertChanges()} is called, then, after
+ * reverting any changes to this model, it will call {@link IRevertible#revertChanges()} on any property
+ * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
+ * get infinite calls).  In that case override {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)},
+ * {@link #isDirtyImpl(IDirtyable)}, {@link #setDirtyImpl(IDirtyable, boolean)}, or {@link #saveChangesImpl(IRevertible)}
+ * to prevent this.
  * 
  * @author Daniel Murphy
  */
@@ -238,7 +246,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		}
 		for(E e : this){
 			if(e instanceof IDirtyable){
-				if(((IDirtyable) e).isDirty()){
+				if(isDirtyImpl((IDirtyable) e)){
 					return true;
 				}
 			}
@@ -246,6 +254,16 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		return false;
 	}
 
+	/**
+	 * Default just calls {@link IDirtyable#isDirty()}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertable
+	 * @return
+	 */
+	public boolean isDirtyImpl(IDirtyable argDirtyable){
+		return argDirtyable.isDirty();
+	}
+	
 	/**
 	 * Sets the dirty variable and, if argDirty is false,
 	 * then will call {@link IDirtyable#setDirty(boolean)} on
@@ -259,12 +277,23 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		if(!dirty){
 			for(E e: this){
 				if(e instanceof IDirtyable){
-					((IDirtyable) e).setDirty(dirty);
+					setDirtyImpl((IDirtyable) e, dirty);
 				}
 			}
 		}
 		firePropertyChange(DIRTY, oldDirty, dirty);
 		return oldDirty;
+	}
+	
+	/**
+	 * Default just calls {@link IDirtyable#setDirty(boolean)}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertable
+	 * @param argDirty
+	 * @return
+	 */
+	public boolean setDirtyImpl(IDirtyable argDirtyable, boolean argDirty){
+		return argDirtyable.setDirty(argDirty);
 	}
 
 	/**
@@ -280,14 +309,24 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		setFromSaved();
 		for(E e: this){
 			if(e instanceof IRevertible){
-				((IRevertible) e).revertChanges();
+				revertChangesImpl((IRevertible) e);
 			}
 		}
 		return true;
 	}
+	
+	/**
+	 * Default just calls {@link IRevertible#revertChanges()}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertable
+	 * @return
+	 */
+	protected boolean revertChangesImpl(IRevertible argRevertible){
+		return argRevertible.revertChanges();
+	}
 
 	/**
-	 * Also calls {@link IRevertable#saveChanges()()} on all
+	 * Also calls {@link IRevertable#saveChanges()} on all
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
@@ -299,9 +338,19 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		setToSaved();
 		for(E e: this){
 			if(e instanceof IRevertible){
-				((IRevertible) e).saveChanges();
+				saveChangesImpl((IRevertible) e);
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * Default just calls {@link IRevertible#saveChanges()}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertible
+	 * @return
+	 */
+	protected boolean saveChangesImpl(IRevertible argRevertible){
+		return argRevertible.saveChanges();
 	}
 }

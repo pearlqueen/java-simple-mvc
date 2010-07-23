@@ -11,7 +11,15 @@ import com.dmurph.mvc.IRevertible;
 
 /**
  * Model that stores all properties in a HashMap, so all {@link IDirtyable}, {@link ICloneable}, and
- * {@link IRevertible} functionality is handled internally.
+ * {@link IRevertible} functionality is handled internally.<br/>
+ * <br/>
+ * This class also will forward all calls to it's
+ * members if implement the associated interface.  For example, if {@link #revertChanges()} is called, then, after
+ * reverting any changes to this model, it will call {@link IRevertible#revertChanges()} on any property
+ * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
+ * get infinite calls).  In that case override {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)},
+ * {@link #isDirtyImpl(IDirtyable)}, or {@link #saveChangesImpl(IRevertible)} to prevent this.
+ * 
  * @author Daniel Murphy
  *
  */
@@ -51,7 +59,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 	
 	/**
-	 * 
+	 * Register a property
 	 * @param argKey
 	 * @param argType
 	 */
@@ -60,6 +68,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 	
 	/**
+	 * Register a property with an initial value
 	 * @param argKey
 	 * @param argType
 	 * @param argInitial
@@ -79,6 +88,11 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		propertyMap.put(argKey, mp);
 	}
 	
+	/**
+	 * Register an array of properties all of the same property type
+	 * @param argKeys
+	 * @param argType
+	 */
 	protected synchronized void registerProperty(String[] argKeys, PropertyType argType){
 		for(String s: argKeys){
 			registerProperty(s, argType, null);
@@ -86,6 +100,9 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 	
 	/**
+	 * Sets a property, and will only set the property if it's {@link PropertyType} is
+	 * {@link PropertyType#READ_WRITE}.
+	 * @see #getPropertyType(String)
 	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#setProperty(java.lang.String, java.lang.Object)
 	 */
 	public synchronized Object setProperty(String argKey, Object argProperty){
@@ -112,7 +129,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 		
 	/**
-	 * 
+	 * Get a property
 	 * @param argKey
 	 * @return
 	 */
@@ -125,6 +142,11 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		}
 	}
 	
+	/**
+	 * Get the {@link PropertyType} for a property.
+	 * @param argKey
+	 * @return
+	 */
 	public synchronized PropertyType getPropertyType(String argKey){
 		ModelProperty mp = propertyMap.get(argKey);
 		if(mp != null){
@@ -165,7 +187,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 					continue;
 				}
 				
-				setProperty(key, cloneObject(mp.prop));
+				setProperty(key, cloneImpl(mp.prop));
 			}
 		}else{
 			throw new RuntimeException("Not a HashModel");
@@ -173,11 +195,13 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 	
 	/**
-	 * override to handle cloning your own way
-	 * @param o
+	 * Default just calls {@link ICloneable#clone()} (if the object is
+	 * {@link ICloneable}), but override to implement your own cloning and
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertable
 	 * @return
 	 */
-	protected Object cloneObject(Object o){
+	protected Object cloneImpl(Object o){
 		if(o instanceof ICloneable){
 			return ((ICloneable) o).clone();
 		}else{
@@ -197,7 +221,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IDirtyable){
-				ret = ret || ((IRevertible) mp.prop).revertChanges();
+				ret = ret || isDirtyImpl((IDirtyable) mp.prop);
 				if(ret){
 					setProperty(DIRTY, ret);
 					return ret;
@@ -206,6 +230,16 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		}
 		setProperty(DIRTY, ret);
 		return ret;
+	}
+	
+	/**
+	 * Default just calls {@link IDirtyable#isDirty()}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertable
+	 * @return
+	 */
+	public boolean isDirtyImpl(IDirtyable argDirtyable){
+		return argDirtyable.isDirty();
 	}
 
 	/**
@@ -217,11 +251,21 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
-				ret = ret || ((IRevertible) mp.prop).revertChanges();
+				ret = ret || revertChangesImpl((IRevertible) mp.prop);
 			}
 		}
 		setProperty(DIRTY, false);
 		return ret;
+	}
+	
+	/**
+	 * Default just calls {@link IRevertible#revertChanges()}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertable
+	 * @return
+	 */
+	protected boolean revertChangesImpl(IRevertible argRevertible){
+		return argRevertible.revertChanges();
 	}
 	
 	/**
@@ -234,10 +278,20 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
-				ret = ret || ((IRevertible) mp.prop).saveChanges();
+				ret = ret || saveChangesImpl((IRevertible) mp.prop);
 			}
 		}
 		return ret;
+	}
+	
+	/**
+	 * Default just calls {@link IRevertible#saveChanges()}, but override
+	 * to protect against loops (if the property tree goes in a loop).
+	 * @param argRevertible
+	 * @return
+	 */
+	protected boolean saveChangesImpl(IRevertible argRevertible){
+		return argRevertible.saveChanges();
 	}
 	
 	private static class ModelProperty{

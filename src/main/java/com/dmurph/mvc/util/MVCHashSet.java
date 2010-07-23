@@ -32,8 +32,7 @@ import com.dmurph.mvc.model.AbstractDirtyableModel;
 
 /**
  * A {@link HashSet} that implements {@link ICloneable} and {@link IDirtyable} for use with the models.
- * 
- * TODO implement reverting changes, saving, etc
+ * TODO implement like {@link MVCArrayList}, with revertible support and property events
  * @author Daniel Murphy
  */
 public class MVCHashSet<E> extends HashSet<E> implements ICloneable, IDirtyable{
