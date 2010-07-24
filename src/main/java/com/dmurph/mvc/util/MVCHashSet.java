@@ -28,7 +28,6 @@ import java.util.HashSet;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
-import com.dmurph.mvc.model.AbstractDirtyableModel;
 
 /**
  * A {@link HashSet} that implements {@link ICloneable} and {@link IDirtyable} for use with the models.

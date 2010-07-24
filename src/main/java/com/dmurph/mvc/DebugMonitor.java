@@ -36,7 +36,7 @@ public class DebugMonitor implements IGlobalEventMonitor {
 			monitor.beforeDispatch(argEvent);
 		}
 		if(argEvent instanceof ObjectEvent<?>){
-			System.out.println(I18n.getText("monitor.dispatchingValue", argEvent.key, ((ObjectEvent) argEvent).getValue().toString()));
+			System.out.println(I18n.getText("monitor.dispatchingValue", argEvent.key, ((ObjectEvent<?>) argEvent).getValue().toString()));
 		}else{
 			System.out.println(I18n.getText("monitor.dispatching", argEvent.key));
 		}

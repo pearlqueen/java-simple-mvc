@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
+import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertible;
 
 /**
@@ -54,8 +55,21 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		FINAL
 	}
 	
+	/**
+	 * Constructs a hash model with an {@link IModel#DIRTY} property.
+	 */
 	public HashModel(){
 		registerProperty(DIRTY, PropertyType.READ_WRITE, false);
+	}
+	
+	/**
+	 * Constructs a hash model with an {@link IModel#DIRTY} property, and
+	 * the given properties all with property type of {@link PropertyType#READ_WRITE}.
+	 * @param argProperties
+	 */
+	public HashModel(String[] argProperties){
+		this();
+		registerProperty(argProperties, PropertyType.READ_WRITE);
 	}
 	
 	/**
@@ -101,7 +115,8 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	
 	/**
 	 * Sets a property, and will only set the property if it's {@link PropertyType} is
-	 * {@link PropertyType#READ_WRITE}.
+	 * {@link PropertyType#READ_WRITE}.  If the property isn't defined, it will be registered
+	 * and set with the property type of {@link PropertyType#READ_WRITE}.
 	 * @see #getPropertyType(String)
 	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#setProperty(java.lang.String, java.lang.Object)
 	 */
