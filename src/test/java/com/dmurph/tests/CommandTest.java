@@ -16,6 +16,7 @@ import com.dmurph.mvc.control.ICommand;
 public class CommandTest extends TestCase{
 
 	public void testCommand(){
+		@SuppressWarnings("unused")
 		Controller controller = new Controller();
 		MVCEvent event = new MVCEvent("test");
 		event.dispatch();
