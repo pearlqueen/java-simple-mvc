@@ -30,13 +30,19 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.dmurph.mvc.tracking.ITrackable;
+import com.dmurph.tracking.JGoogleAnalyticsTracker;
+
 
 /**
  * This stores all the listener information, dispatches events
  * to the corresponding listeners.  To dispatch events use
  * {@link MVCEvent#dispatch()}.</br>
- * </br>
- * Also, look at {@link #splitOff()}.
+ * </br>  
+ * Also, look at {@link #splitOff()}.  To set up Google analytics, initialize the
+ *  {@link JGoogleAnalyticsTracker} and then any event that implements {@link ITrackable}
+ *  will be tracked.  If {@link ITrackable#getTrackingCategory()} or {@link ITrackable#getTrackingAction()}
+ *  returns <code>null</code>, then it will be ignored.
  * @author Daniel Murphy
  */
 public class MVC extends Thread{
@@ -248,6 +254,15 @@ public class MVC extends Thread{
 		
 		if(monitor != null){
 			monitor.beforeDispatch(argEvent);
+		}
+		if(argEvent instanceof ITrackable){
+			ITrackable event = (ITrackable) argEvent;
+			if(event.getTrackingCategory() != null && event.getTrackingAction() != null){
+				JGoogleAnalyticsTracker.getInstance().trackEvent(event.getTrackingCategory(),
+																 event.getTrackingAction(),
+																 event.getTrackingLabel(),
+																 event.getTrackingValue());
+			}
 		}
 		Iterator<IEventListener> it = stack.iterator();
 		while(it.hasNext() && argEvent.isPropagating()){
