@@ -24,10 +24,11 @@
  */
 package com.dmurph.mvc.model;
 
-import java.util.HashMap;
-
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IRevertible;
+import com.dmurph.mvc.support.ISupportable;
+import com.dmurph.mvc.support.RevertibleSupport;
+import com.dmurph.mvc.support.RevertibleSupport.PropertyWrapper;
 
 /**
  * This model keeps track of original and changed property values through the 
@@ -42,9 +43,18 @@ import com.dmurph.mvc.IRevertible;
 public abstract class AbstractRevertibleModel extends AbstractModel implements IDirtyable, IRevertible{
 	private static final long serialVersionUID = 1L;
 	
-	private HashMap<String, PropertyWrapper> propertyMap = new HashMap<String, PropertyWrapper>();
 	private boolean overridingDirty = false;
+	private final RevertibleSupport revertibleSupport;
 	
+	public AbstractRevertibleModel(){
+		super();
+		revertibleSupport = new RevertibleSupport(propertyChangeSupport, new ISupportable() {
+			@Override
+			public void setProperty(String argPropertyName, Object argProperty) {
+				AbstractRevertibleModel.this.setProperty(argPropertyName, argProperty);
+			}
+		});
+	}
     /**
      * If the model is "dirty", or changed since last save.  This
      * method can be expensive, as it checks all changed properties to
@@ -57,8 +67,8 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 		if(overridingDirty){
 			return overridingDirty;
 		}
-		for(String key : propertyMap.keySet()){
-			if(propertyMap.get(key).isDirty()){
+		for(PropertyWrapper prop : revertibleSupport.getRecordedProperties()){
+			if(prop.isDirty()){
 				return true;
 			}
 		}
@@ -87,26 +97,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.model.AbstractModel#firePropertyChange(java.lang.String, java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	protected void firePropertyChange(String argPropertyName, Object argOldValue, Object argNewValue) {
-		if(propertyMap.containsKey(argPropertyName)){
-			PropertyWrapper wrapper = propertyMap.get(argPropertyName);
-			wrapper.dirtyObject = argNewValue;
-		}else{
-			PropertyWrapper wrapper = new PropertyWrapper();
-			wrapper.name = argPropertyName;
-			wrapper.cleanObject = argOldValue;
-			wrapper.dirtyObject = argNewValue;
-			propertyMap.put(argPropertyName, wrapper);
-		}
-		super.firePropertyChange(argPropertyName, argOldValue, argNewValue);
-	}
-	
-	
-	
-	/**
 	 * Used to reset variables when {@link #revertChanges()} is called.
 	 * @param argPropertyName the property name corresponding to the name
 	 * 						  given to the {@link #firePropertyChange(String, Object, Object)}
@@ -122,15 +112,7 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	 */
 	@Override
 	public boolean saveChanges() {
-		boolean saved = false;
-		for(String key : propertyMap.keySet()){
-			PropertyWrapper wrapper = propertyMap.get(key);
-			if(wrapper.isDirty()){
-				saved = true;
-				wrapper.cleanObject = wrapper.dirtyObject;
-			}
-		}
-		return saved;
+		return revertibleSupport.saveChanges();
 	}
 	
 	/**
@@ -138,37 +120,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	 */
 	@Override
 	public boolean revertChanges() {
-		boolean reverted = false;
-		for(String key : propertyMap.keySet()){
-			PropertyWrapper wrapper = propertyMap.get(key);
-			if(wrapper.isDirty()){
-				reverted = true;
-				wrapper.dirtyObject = wrapper.cleanObject;
-				setProperty(wrapper.name, wrapper.cleanObject);
-			}
-		}
-		return reverted;
-	}
-	
-	private static class PropertyWrapper{
-		String name = null;
-		Object cleanObject = null;
-		Object dirtyObject = null;
-		
-		public boolean isDirty(){
-			if(cleanObject == dirtyObject){
-				return false;
-			}
-			
-			if(cleanObject == null){
-				return true;
-			}
-			
-			if(cleanObject.equals(dirtyObject)){
-				return false;
-			}
-			
-			return true;
-		}
+		return revertibleSupport.revertChanges();
 	}
 }

@@ -24,15 +24,8 @@
  */
 package com.dmurph.mvc;
 
-import com.dmurph.mvc.util.MVCArrayList;
-import com.dmurph.mvc.util.MVCHashMap;
-import com.dmurph.mvc.util.MVCHashSet;
-
 /**
  * Adds cloning support to an object.
- * @see MVCArrayList
- * @see MVCHashMap
- * @see MVCHashSet
  * @author Daniel Murphy
  */
 public interface ICloneable {

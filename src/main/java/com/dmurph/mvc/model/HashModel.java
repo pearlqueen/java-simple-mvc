@@ -3,7 +3,10 @@
  */
 package com.dmurph.mvc.model;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
@@ -55,6 +58,18 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		FINAL
 	}
 	
+	// for listening to dirty updates from children
+	private final PropertyChangeListener childPropertyChangeListener = new PropertyChangeListener() {
+		@Override
+		public void propertyChange(PropertyChangeEvent argEvt) {
+			if(argEvt.getPropertyName().equals(IModel.DIRTY)){
+				if(argEvt.getNewValue() == Boolean.TRUE){
+					propertyChangeSupport.firePropertyChange(argEvt);
+				}
+			}
+		}
+	};
+	
 	/**
 	 * Constructs a hash model with an {@link IModel#DIRTY} property.
 	 */
@@ -70,6 +85,19 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	public HashModel(String[] argProperties){
 		this();
 		registerProperty(argProperties, PropertyType.READ_WRITE);
+	}
+	
+	
+	private void addListener(Object argObject){
+		if(argObject instanceof IModel){
+			((IModel) argObject).addPropertyChangeListener(childPropertyChangeListener);
+		}
+	}
+	
+	private void removeListener(Object argObject){
+		if(argObject instanceof IModel){
+			((IModel) argObject).removePropertyChangeListener(childPropertyChangeListener);
+		}
 	}
 	
 	/**
@@ -99,6 +127,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		}
 		mp.type = argType;
 		mp.prop = argInitial;
+		addListener(mp.prop);
 		propertyMap.put(argKey, mp);
 	}
 	
@@ -128,7 +157,9 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 					return argProperty;
 				}
 				Object old = mp.prop;
+				removeListener(old);
 				mp.prop = argProperty;
+				addListener(mp.prop);
 				firePropertyChange(argKey, old, argProperty);
 				if(!argProperty.equals(DIRTY)){
 					setProperty(DIRTY, true);
@@ -181,6 +212,16 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		return model;
 	}
 	
+	// clears properties of the model, making sure the remove listeners
+	// from any properties that are IModels
+	private void clear(){
+		Iterator<ModelProperty> it = propertyMap.values().iterator();
+		while(it.hasNext()){
+			removeListener(it.next().prop);
+			it.remove();
+		}
+	}
+	
 	/**
 	 * Clones from another HashModel, and makes sure to copy any values
 	 * in the model that are {@link ICloneable}. It watches for references
@@ -190,7 +231,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	@Override
 	public synchronized void cloneFrom(ICloneable argOther) {
 		if(argOther instanceof HashModel){
-			propertyMap.clear();
+			clear();
 			HashModel other = (HashModel) argOther;
 						
 			for(String key: other.propertyMap.keySet()){
@@ -202,7 +243,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 					continue;
 				}
 				
-				setProperty(key, cloneImpl(mp.prop));
+				setProperty(key, cloneImpl(key, mp.prop));
 			}
 		}else{
 			throw new RuntimeException("Not a HashModel");
@@ -216,7 +257,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	 * @param argRevertable
 	 * @return
 	 */
-	protected Object cloneImpl(Object o){
+	protected Object cloneImpl(String argProperty, Object o){
 		if(o instanceof ICloneable){
 			return ((ICloneable) o).clone();
 		}else{
@@ -236,7 +277,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IDirtyable){
-				ret = ret || isDirtyImpl((IDirtyable) mp.prop);
+				ret = ret || isDirtyImpl(key, (IDirtyable) mp.prop);
 				if(ret){
 					setProperty(DIRTY, ret);
 					return ret;
@@ -253,7 +294,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	 * @param argRevertable
 	 * @return
 	 */
-	public boolean isDirtyImpl(IDirtyable argDirtyable){
+	public boolean isDirtyImpl(String argProperty, IDirtyable argDirtyable){
 		return argDirtyable.isDirty();
 	}
 
@@ -266,7 +307,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
-				ret = ret || revertChangesImpl((IRevertible) mp.prop);
+				ret = ret || revertChangesImpl(key, (IRevertible) mp.prop);
 			}
 		}
 		setProperty(DIRTY, false);
@@ -279,7 +320,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	 * @param argRevertable
 	 * @return
 	 */
-	protected boolean revertChangesImpl(IRevertible argRevertible){
+	protected boolean revertChangesImpl(String argProperty, IRevertible argRevertible){
 		return argRevertible.revertChanges();
 	}
 	
@@ -293,7 +334,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
-				ret = ret || saveChangesImpl((IRevertible) mp.prop);
+				ret = ret || saveChangesImpl(key, (IRevertible) mp.prop);
 			}
 		}
 		return ret;
@@ -305,7 +346,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	 * @param argRevertible
 	 * @return
 	 */
-	protected boolean saveChangesImpl(IRevertible argRevertible){
+	protected boolean saveChangesImpl(String argProperty, IRevertible argRevertible){
 		return argRevertible.saveChanges();
 	}
 	

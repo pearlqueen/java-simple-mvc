@@ -27,7 +27,6 @@ import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 
 import com.dmurph.mvc.IModel;
-import com.dmurph.mvc.util.MVCArrayList;
 
 /**
  * <p>Abstract model class, used for storing data and throwing {@link PropertyChangeEvent}s when values are changed.
