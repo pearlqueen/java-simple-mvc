@@ -114,8 +114,8 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	public synchronized boolean add(E e) {
 		boolean ret = super.add(e);
 		addListener(e);
-		firePropertyChange(SIZE, size() - 1, size());
 		propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -126,6 +126,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		super.add(index, element);
 		addListener(element);
 		propertyChangeSupport.fireIndexedPropertyChange(ADDED, index, null, element);
+		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
