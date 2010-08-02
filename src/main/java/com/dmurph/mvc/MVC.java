@@ -276,7 +276,7 @@ public class MVC extends Thread{
 																		   event.getTrackingLabel(),
 																		   event.getTrackingValue());
 				}
-				if(tracker != null){
+				else if(tracker != null){
 					tracker.trackEvent(event.getTrackingCategory(),
 									   event.getTrackingAction(),
 									   event.getTrackingLabel(),
