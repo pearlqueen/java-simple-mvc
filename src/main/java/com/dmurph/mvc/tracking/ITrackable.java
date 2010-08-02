@@ -23,13 +23,15 @@
  * Created at Jul 31, 2010, 1:49:27 AM
  */
 package com.dmurph.mvc.tracking;
+
+import com.dmurph.mvc.MVC;
+
 /**
- * Have your event implement this so it gets tracked by google code.  To start google code tracking,
- * initialize the tracker by doing something like this:</br>
- * <code>JGoogleAnalyticsTracker tracker = JGoogleAnalyticsTracker.getInstance();<br/>
- * tracker.initialize(new AnalyticsConfigData());</code><br/>
+ * Have your event implement this so it gets tracked by google code.  To start google analytics tracking,
+ * call {@link MVC#setTracker(com.dmurph.tracking.JGoogleAnalyticsTracker)} or implement {@link ICustomTracker}
+ * along with this interface.<br/>
  * If {@link #getTrackingCategory()} or {@link #getTrackingAction()} returns null,
- * then the tracking will be ignored.
+ * then the tracking will be ignored.  But the label and value can be null.
  * @author daniel
  */
 public interface ITrackable {
@@ -57,8 +59,8 @@ public interface ITrackable {
 	
 	/**
 	 * Get the value for the action.  These show up when you click on the label
-	 * for an event action.
+	 * for an event action.  This can be null.
 	 * @return
 	 */
-	public String getTrackingValue();
+	public Integer getTrackingValue();
 }

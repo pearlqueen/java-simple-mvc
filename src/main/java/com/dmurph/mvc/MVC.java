@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.dmurph.mvc.tracking.ICustomTracker;
 import com.dmurph.mvc.tracking.ITrackable;
 import com.dmurph.tracking.JGoogleAnalyticsTracker;
 
@@ -39,10 +40,10 @@ import com.dmurph.tracking.JGoogleAnalyticsTracker;
  * to the corresponding listeners.  To dispatch events use
  * {@link MVCEvent#dispatch()}.</br>
  * </br>  
- * Also, look at {@link #splitOff()}.  To set up Google analytics, initialize the
- *  {@link JGoogleAnalyticsTracker} and then any event that implements {@link ITrackable}
- *  will be tracked.  If {@link ITrackable#getTrackingCategory()} or {@link ITrackable#getTrackingAction()}
- *  returns <code>null</code>, then it will be ignored.
+ * Also, look at {@link #splitOff()}.  To set up Google analytics, call {@link #setTracker(JGoogleAnalyticsTracker)},
+ * or implement {@link ICustomTracker} in your events to be tracked, and then any event that implements {@link ITrackable}
+ * will be tracked.  If {@link ITrackable#getTrackingCategory()} or {@link ITrackable#getTrackingAction()}
+ * returns <code>null</code>, then it will be ignored.
  * @author Daniel Murphy
  */
 public class MVC extends Thread{
@@ -55,6 +56,7 @@ public class MVC extends Thread{
 	private final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
 	private volatile boolean running = false;
+	private volatile JGoogleAnalyticsTracker tracker = null;
 	
 	private volatile static int threadCounter = 0;
 	
@@ -62,6 +64,14 @@ public class MVC extends Thread{
 		super(mvcThreadGroup, "MVC Thread #"+(threadCounter++));
 		mvcThreads.add(this);
 		monitor = new WarningMonitor();
+	}
+
+	public static void setTracker(JGoogleAnalyticsTracker tracker) {
+		mainThread.tracker = tracker;
+	}
+
+	public static JGoogleAnalyticsTracker getTracker() {
+		return mainThread.tracker;
 	}
 
 	/**
@@ -181,6 +191,8 @@ public class MVC extends Thread{
 				}
 				old.listeners.clear();
 				old.running = false;
+				mainThread.tracker = old.tracker;
+				old.tracker = null;
 				
 				mainThread.start();
 			}else{
@@ -258,10 +270,18 @@ public class MVC extends Thread{
 		if(argEvent instanceof ITrackable){
 			ITrackable event = (ITrackable) argEvent;
 			if(event.getTrackingCategory() != null && event.getTrackingAction() != null){
-				JGoogleAnalyticsTracker.getInstance().trackEvent(event.getTrackingCategory(),
-																 event.getTrackingAction(),
-																 event.getTrackingLabel(),
-																 event.getTrackingValue());
+				if(event instanceof ICustomTracker){
+					((ICustomTracker) event).getCustomTracker().trackEvent(event.getTrackingCategory(),
+																		   event.getTrackingAction(),
+																		   event.getTrackingLabel(),
+																		   event.getTrackingValue());
+				}
+				if(tracker != null){
+					tracker.trackEvent(event.getTrackingCategory(),
+									   event.getTrackingAction(),
+									   event.getTrackingLabel(),
+									   event.getTrackingValue());
+				}
 			}
 		}
 		Iterator<IEventListener> it = stack.iterator();

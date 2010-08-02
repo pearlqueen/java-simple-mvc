@@ -125,7 +125,7 @@
 		<dependency>
 			<groupId>com.dmurph</groupId>
 			<artifactId>JGoogleAnalyticsTracker</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
