@@ -44,7 +44,6 @@ public class RevertibleSupport implements IRevertible{
 	public RevertibleSupport(PropertyChangeSupport argPropertyChangeSupport, ISupportable argSupportable){
 		supportable = argSupportable;
 		argPropertyChangeSupport.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
 			public void propertyChange(PropertyChangeEvent argEvt) {
 				if(propertyMap.containsKey(argEvt.getPropertyName())){
 					PropertyWrapper wrapper = propertyMap.get(argEvt.getPropertyName());
@@ -67,7 +66,6 @@ public class RevertibleSupport implements IRevertible{
 	/**
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	@Override
 	public boolean saveChanges() {
 		boolean saved = false;
 		for(String key : propertyMap.keySet()){
@@ -83,7 +81,6 @@ public class RevertibleSupport implements IRevertible{
 	/**
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	@Override
 	public boolean revertChanges() {
 		boolean reverted = false;
 		for(String key : propertyMap.keySet()){

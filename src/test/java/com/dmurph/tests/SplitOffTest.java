@@ -58,7 +58,6 @@ public class SplitOffTest extends TestCase implements IEventListener{
 	/**
 	 * @see com.dmurph.mvc.IEventListener#eventReceived(com.dmurph.mvc.MVCEvent)
 	 */
-	@Override
 	public void eventReceived(MVCEvent argEvent) {
 		
 		System.out.println("Recieved thread: "+Thread.currentThread().getName()+", "+Thread.currentThread().getId());

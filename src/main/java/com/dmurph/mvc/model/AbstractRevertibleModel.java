@@ -49,7 +49,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	public AbstractRevertibleModel(){
 		super();
 		revertibleSupport = new RevertibleSupport(propertyChangeSupport, new ISupportable() {
-			@Override
 			public void setProperty(String argPropertyName, Object argProperty) {
 				AbstractRevertibleModel.this.setProperty(argPropertyName, argProperty);
 			}
@@ -62,7 +61,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
      * was recently called with true.
      * @see com.dmurph.mvc.IDirtyable#isDirty()
      */
-	@Override
 	public boolean isDirty(){
 		if(overridingDirty){
 			return overridingDirty;
@@ -83,7 +81,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	 * with false.
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	@Override
 	public boolean setDirty(boolean argDirty) {
 		boolean dirty = isDirty();
 		if(argDirty){
@@ -110,7 +107,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	/**
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	@Override
 	public boolean saveChanges() {
 		return revertibleSupport.saveChanges();
 	}
@@ -118,7 +114,6 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	/**
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	@Override
 	public boolean revertChanges() {
 		return revertibleSupport.revertChanges();
 	}

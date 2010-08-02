@@ -50,7 +50,6 @@ public class CommandTest extends TestCase{
 		/**
 		 * @see com.dmurph.mvc.control.ICommand#execute(com.dmurph.mvc.MVCEvent)
 		 */
-		@Override
 		public void execute(MVCEvent argEvent) {
 			System.out.println(this.toString());
 		}

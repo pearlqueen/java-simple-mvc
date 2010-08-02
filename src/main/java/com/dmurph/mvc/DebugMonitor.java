@@ -20,7 +20,6 @@ public class DebugMonitor implements IGlobalEventMonitor {
 	/**
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#afterDispatch(com.dmurph.mvc.MVCEvent)
 	 */
-	@Override
 	public void afterDispatch(MVCEvent argEvent) {
 		if(monitor != null){
 			monitor.afterDispatch(argEvent);
@@ -30,7 +29,6 @@ public class DebugMonitor implements IGlobalEventMonitor {
 	/**
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#beforeDispatch(com.dmurph.mvc.MVCEvent)
 	 */
-	@Override
 	public void beforeDispatch(MVCEvent argEvent) {
 		if(monitor != null){
 			monitor.beforeDispatch(argEvent);
@@ -45,7 +43,6 @@ public class DebugMonitor implements IGlobalEventMonitor {
 	/**
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#noListeners(com.dmurph.mvc.MVCEvent)
 	 */
-	@Override
 	public void noListeners(MVCEvent argEvent) {
 		if(monitor != null){
 			monitor.noListeners(argEvent);

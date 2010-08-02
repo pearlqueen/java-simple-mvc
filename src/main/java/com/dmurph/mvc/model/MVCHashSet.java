@@ -66,7 +66,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	private final HashSet<E> saved = new HashSet<E>();
 	
 	private final PropertyChangeListener childPropertyChangeListener = new PropertyChangeListener() {
-		@Override
 		public void propertyChange(PropertyChangeEvent argEvt) {
 			if(argEvt.getPropertyName().equals(IModel.DIRTY)){
 				if(argEvt.getNewValue() == Boolean.TRUE){
@@ -177,7 +176,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * @see com.dmurph.mvc.ICloneable#cloneFrom(com.dmurph.mvc.ICloneable)
 	 */
 	@SuppressWarnings("unchecked")
-	@Override
 	public synchronized void cloneFrom( ICloneable argOther) {
 		MVCHashSet<E> other = (MVCHashSet<E>) argOther;
 		clear();
@@ -224,7 +222,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * array are dirty, if any are {@link IDirtyable}.
 	 * @see com.dmurph.mvc.IDirtyable#isDirty()
 	 */
-	@Override
 	public synchronized boolean isDirty() {
 		if(dirty){
 			return true;
@@ -259,7 +256,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * all {@link IDirtyable} objects in this array.
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	@Override
 	public synchronized boolean setDirty( boolean argDirty) {
 		boolean oldDirty = dirty;
 		dirty = argDirty;
@@ -289,7 +285,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	@Override
 	public synchronized boolean revertChanges() {
 		if(!isDirty()){
 			return false;
@@ -316,7 +311,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	@Override
 	public synchronized boolean saveChanges() {
 		if(!isDirty()){
 			return false;

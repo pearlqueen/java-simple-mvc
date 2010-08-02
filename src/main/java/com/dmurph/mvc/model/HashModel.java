@@ -60,7 +60,6 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	
 	// for listening to dirty updates from children
 	private final PropertyChangeListener childPropertyChangeListener = new PropertyChangeListener() {
-		@Override
 		public void propertyChange(PropertyChangeEvent argEvt) {
 			if(argEvt.getPropertyName().equals(IModel.DIRTY)){
 				if(argEvt.getNewValue() == Boolean.TRUE){
@@ -228,7 +227,6 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	 *  to <code>argOther</code> and sets them to <code>this</code>.
 	 * @see com.dmurph.mvc.ICloneable#cloneFrom(com.dmurph.mvc.ICloneable)
 	 */
-	@Override
 	public synchronized void cloneFrom(ICloneable argOther) {
 		if(argOther instanceof HashModel){
 			clear();

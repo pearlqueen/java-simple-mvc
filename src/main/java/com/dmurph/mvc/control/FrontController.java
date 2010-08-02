@@ -131,7 +131,6 @@ public abstract class FrontController{
 			controller = argController;
 		}
 		
-		@Override
 		public void eventReceived( MVCEvent argEvent) {
 			HashSet<Class<? extends ICommand>> commands = controller.keyToCommands.get(argEvent.key);
 			

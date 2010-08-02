@@ -41,7 +41,6 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
      * If the model is "dirty", or changed since last save.
      * @see com.dmurph.mvc.IDirtyable#isDirty()
      */
-	@Override
 	public boolean isDirty(){
 		return dirty;
 	}
@@ -49,7 +48,6 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	/**
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	@Override
 	public boolean setDirty(boolean argDirty){
 		boolean oldDirty = dirty;
 		dirty = argDirty;
