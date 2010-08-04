@@ -171,7 +171,9 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#afterDispatch(com.dmurph.mvc.MVCEvent)
 	 */
 	public void afterDispatch(MVCEvent argEvent) {
-		delegate.afterDispatch(argEvent);
+		if(delegate != null){
+			delegate.afterDispatch(argEvent);
+		}
 		if(enabled && type == EventMonitorType.AFTER_DISPATCH){
 			numEvents++;
 			updateInfo();
@@ -183,7 +185,9 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#beforeDispatch(com.dmurph.mvc.MVCEvent)
 	 */
 	public void beforeDispatch(MVCEvent argEvent) {
-		delegate.beforeDispatch(argEvent);
+		if(delegate != null){
+			delegate.beforeDispatch(argEvent);
+		}
 		if(enabled && type == EventMonitorType.BEFORE_DISPATCH){
 			numEvents++;
 			updateInfo();
@@ -195,7 +199,9 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#noListeners(com.dmurph.mvc.MVCEvent)
 	 */
 	public void noListeners(MVCEvent argEvent) {
-		delegate.noListeners(argEvent);
+		if(delegate != null){
+			delegate.noListeners(argEvent);
+		}
 		if(enabled){
 			numEvents++;
 			numSilentEvents++;
