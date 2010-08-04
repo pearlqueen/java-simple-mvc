@@ -52,11 +52,13 @@ public class EventTableModel extends AbstractTableModel {
 			LogEntry entry = new LogEntry();
 			entry.populate(argEvent, argType);
 			events.add(entry);
+			fireTableDataChanged();
 			return;
 		}
 		if(events.size() == maxMessagesLogged){
 			events.get(nextMessageIndex).populate(argEvent, argType);
 			nextMessageIndex = (nextMessageIndex+1)%maxMessagesLogged;
+			fireTableDataChanged();
 			return;
 		}
 		LogEntry entry = new LogEntry();

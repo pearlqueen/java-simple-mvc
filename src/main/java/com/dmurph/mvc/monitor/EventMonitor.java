@@ -72,6 +72,10 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		this(EventMonitorType.BEFORE_DISPATCH, null, DEFAULT_NUM_MESSAGES_LOGGED);
 	}
 	
+	public EventMonitor(int argMaxLogEntries){
+		this(EventMonitorType.BEFORE_DISPATCH, null, argMaxLogEntries);
+	}
+	
 	public EventMonitor(IGlobalEventMonitor argDelegate){
 		this(EventMonitorType.BEFORE_DISPATCH, argDelegate, DEFAULT_NUM_MESSAGES_LOGGED);
 	}
