@@ -99,7 +99,7 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	 * 						 to try to log all messages.
 	 */
 	public EventMonitor(EventMonitorType argType, IGlobalEventMonitor argDelegate, int argMaxMessages){
-		super("JMVC Message Monitor");
+		super("JMVC Event Monitor");
 		setSize(400, 400);
 		delegate = argDelegate;
 		type = argType;
