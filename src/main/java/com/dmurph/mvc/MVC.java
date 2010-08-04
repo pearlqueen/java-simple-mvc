@@ -52,7 +52,7 @@ public class MVC extends Thread{
 	private static final ThreadGroup mvcThreadGroup = new ThreadGroup("MVC Thread Group");
 	private static final ArrayList<MVC> mvcThreads = new ArrayList<MVC>();
 	private volatile static MVC mainThread = new MVC();
-	private volatile static IGlobalEventMonitor monitor;
+	private IGlobalEventMonitor monitor;
 	
 	private final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
@@ -160,8 +160,8 @@ public class MVC extends Thread{
 				}
 			}
 		}else{
-			if(monitor != null){
-				monitor.noListeners(argEvent);
+			if(mainThread.monitor != null){
+				mainThread.monitor.noListeners(argEvent);
 			}
 		}
 	}
@@ -193,6 +193,7 @@ public class MVC extends Thread{
 				old.listeners.clear();
 				old.running = false;
 				mainThread.tracker = old.tracker;
+				mainThread.monitor = old.monitor;
 				old.tracker = null;
 				
 				mainThread.start();
@@ -211,7 +212,7 @@ public class MVC extends Thread{
 	 * @see IGlobalEventMonitor
 	 */
 	public synchronized static void setGlobalEventMonitor(IGlobalEventMonitor argMonitor){
-		monitor = argMonitor;
+		mainThread.monitor = argMonitor;
 	}
 	
 	/**
@@ -220,7 +221,7 @@ public class MVC extends Thread{
 	 * @see IGlobalEventMonitor
 	 */
 	public synchronized static IGlobalEventMonitor getGlobalEventMonitor(){
-		return monitor;
+		return mainThread.monitor;
 	}
 	
 	private volatile static EventMonitor guiMonitor = null;
@@ -234,7 +235,7 @@ public class MVC extends Thread{
 	 */
 	public synchronized static EventMonitor showEventMonitor(){
 		if(guiMonitor == null){
-			guiMonitor = new EventMonitor(monitor);
+			guiMonitor = new EventMonitor(mainThread.monitor);
 			setGlobalEventMonitor(guiMonitor);
 		}
 		guiMonitor.setVisible(true);
