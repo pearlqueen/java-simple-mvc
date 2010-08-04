@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.dmurph.mvc.monitor.EventMonitor;
 import com.dmurph.mvc.tracking.ICustomTracker;
 import com.dmurph.mvc.tracking.ITrackable;
 import com.dmurph.tracking.JGoogleAnalyticsTracker;
@@ -220,6 +221,33 @@ public class MVC extends Thread{
 	 */
 	public synchronized static IGlobalEventMonitor getGlobalEventMonitor(){
 		return monitor;
+	}
+	
+	private volatile static EventMonitor guiMonitor = null;
+	
+	/**
+	 * Convenience method to construct and show an {@link EventMonitor}.  To
+	 * have more control on how the {@link EventMonitor} is configured,
+	 * you can just create it yourself and use {@link #setGlobalEventMonitor(IGlobalEventMonitor)}
+	 * to have it be the global event monitor.
+	 * @return the {@link EventMonitor}.
+	 */
+	public synchronized static EventMonitor showEventMonitor(){
+		if(guiMonitor == null){
+			guiMonitor = new EventMonitor(monitor);
+			setGlobalEventMonitor(guiMonitor);
+		}
+		guiMonitor.setVisible(true);
+		return guiMonitor;
+	}
+	
+	/**
+	 * Hides the event monitor, if you had used {@link #showEventMonitor()}.
+	 */
+	public synchronized static void hideEventMonitor(){
+		if(guiMonitor != null){
+			guiMonitor.setVisible(false);
+		}
 	}
 	
 	/**
