@@ -160,7 +160,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 				mp.prop = argProperty;
 				addListener(mp.prop);
 				firePropertyChange(argKey, old, argProperty);
-				if(!argProperty.equals(DIRTY)){
+				if(!argKey.equals(DIRTY)){
 					setProperty(DIRTY, true);
 				}
 				return old;
