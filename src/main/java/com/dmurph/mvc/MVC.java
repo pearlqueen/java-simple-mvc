@@ -318,7 +318,7 @@ public class MVC extends Thread{
 			try{
 				it.next().eventReceived( argEvent);				
 			}catch(Exception e){
-				
+				monitor.exceptionThrown(argEvent, e);
 			}
 		}
 		if(monitor != null){

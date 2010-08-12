@@ -116,6 +116,7 @@ public class EventTableModel extends AbstractTableModel {
 				}else if(entry.type == EventType.EXCEPTION){
 					return "Exception Thrown";
 				}
+				return null;
 			case 5:
 				return entry.threadName;
 			default:

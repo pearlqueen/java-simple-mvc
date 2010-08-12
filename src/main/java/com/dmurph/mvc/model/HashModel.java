@@ -202,6 +202,14 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 	
 	/**
+	 * Gets the names of all the properties.
+	 * @return
+	 */
+	public synchronized String[] getPropertyNames(){
+		return propertyMap.keySet().toArray(new String[0]);
+	}
+	
+	/**
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
@@ -213,7 +221,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	
 	// clears properties of the model, making sure the remove listeners
 	// from any properties that are IModels
-	private void clear(){
+	private void cleanClear(){
 		Iterator<ModelProperty> it = propertyMap.values().iterator();
 		while(it.hasNext()){
 			removeListener(it.next().prop);
@@ -229,7 +237,7 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	 */
 	public synchronized void cloneFrom(ICloneable argOther) {
 		if(argOther instanceof HashModel){
-			clear();
+			cleanClear();
 			HashModel other = (HashModel) argOther;
 						
 			for(String key: other.propertyMap.keySet()){
