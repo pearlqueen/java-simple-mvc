@@ -47,4 +47,15 @@ public class WarningMonitor implements IGlobalEventMonitor {
 		System.err.println(I18n.getText("monitor.noListeners", argEvent.key));
 	}
 	
+	/**
+	 * @see com.dmurph.mvc.IGlobalEventMonitor#exceptionThrown(com.dmurph.mvc.MVCEvent, java.lang.Exception)
+	 */
+	public void exceptionThrown(MVCEvent argEvent, Exception argException) {
+		if(monitor != null){
+			monitor.exceptionThrown(argEvent, argException);
+		}
+		// TODO locale
+		System.err.println("Exception thrown when dispatching event "+argEvent+":"+argException.toString());
+		argException.printStackTrace(System.err);
+	}
 }

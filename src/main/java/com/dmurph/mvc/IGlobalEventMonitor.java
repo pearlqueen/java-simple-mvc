@@ -52,4 +52,13 @@ public interface IGlobalEventMonitor {
 	 * @param argEvent event already dispatched to listeners
 	 */
 	public void afterDispatch(MVCEvent argEvent);
+	
+	/**
+	 * Called when an exception is thrown when dispatching an event.  This
+	 * can be called multiple times with the same event, as there can be multiple
+	 * listeners.
+	 * @param argEvent event that caused the exception
+	 * @param argException the exception from the listener
+	 */
+	public void exceptionThrown(MVCEvent argEvent, Exception argException);
 }

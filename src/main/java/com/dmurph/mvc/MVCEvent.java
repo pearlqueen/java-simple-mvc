@@ -25,6 +25,7 @@
 package com.dmurph.mvc;
 
 import java.io.Serializable;
+import java.util.Random;
 
 
 /**
@@ -34,19 +35,22 @@ import java.io.Serializable;
  * @author Daniel Murphy
  */
 public class MVCEvent implements Serializable{
-	private static final long serialVersionUID = 1L;
-
+	private static final long serialVersionUID = 2L;
+	private static final Random random = new Random();
+	
+	public final int id;
 	public final String key;
 	
 	private volatile boolean propagate = true;
 	
 	public MVCEvent(final String argKey) {
 		key = argKey;
+		id = random.nextInt();
 	}
 
 	@Override
 	public String toString() {
-		return super.toString() + "-" + key;
+		return getClass().getSimpleName() + "[" + id + "]" + "-"+ key;
 	}
 	
 	/**

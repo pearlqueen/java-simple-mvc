@@ -33,8 +33,7 @@ import com.dmurph.mvc.ObjectEvent;
 import com.dmurph.mvc.monitor.EventMonitor.EventType;
 
 /**
- * @author daniel
- *
+ * @author Daniel Murphy
  */
 public class EventTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
@@ -68,7 +67,7 @@ public class EventTableModel extends AbstractTableModel {
 	}
 	
 	final String[] columns = {
-			"Event Key", "Event Class", "Event Value", "Never Recieved", "Thread"
+			"Event ID", "Event Key", "Event Class", "Event Value", "Errors", "Thread"
 	};
 	
 	/**
@@ -104,17 +103,33 @@ public class EventTableModel extends AbstractTableModel {
 		LogEntry entry = events.get(argRowIndex);
 		switch(argColumnIndex){
 			case 0:
-				return entry.eventKey;
+				return entry.eventId;
 			case 1:
-				return entry.eventClass;
+				return entry.eventKey;
 			case 2:
-				return (entry.eventValue != null)?entry.eventValue : "";
+				return entry.eventClass;
 			case 3:
-				return (entry.type == EventType.NO_LISTENERS)? "*" : null;
+				return (entry.eventValue != null)?entry.eventValue : "";
 			case 4:
+				if(entry.type == EventType.NO_LISTENERS){
+					return "Never Received";
+				}else if(entry.type == EventType.EXCEPTION){
+					return "Exception Thrown";
+				}
+			case 5:
 				return entry.threadName;
 			default:
 				return "?";
+		}
+	}
+	
+	public void exceptionThrown(MVCEvent argEvent){
+		for(int i = events.size()-1; i>=0; i--){
+			LogEntry log = events.get(i);
+			if(log.eventId == argEvent.id){
+				log.type = EventType.EXCEPTION;
+				break;
+			}
 		}
 	}
 	
@@ -123,10 +138,12 @@ public class EventTableModel extends AbstractTableModel {
 		String eventKey;
 		String eventValue;
 		String threadName;
+		int eventId;
 		EventType type;
 		
 		public void populate(MVCEvent argEvent, EventType argType){
 			type = argType;
+			eventId = argEvent.id;
 			eventClass = argEvent.getClass().getSimpleName();
 			eventKey = argEvent.key;
 			eventValue = (argEvent instanceof ObjectEvent<?>)? ((ObjectEvent<?>)argEvent).getValue().toString() : null;

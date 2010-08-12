@@ -315,7 +315,11 @@ public class MVC extends Thread{
 		}
 		Iterator<IEventListener> it = stack.iterator();
 		while(it.hasNext() && argEvent.isPropagating()){
-			it.next().eventReceived( argEvent);
+			try{
+				it.next().eventReceived( argEvent);				
+			}catch(Exception e){
+				
+			}
 		}
 		if(monitor != null){
 			monitor.afterDispatch(argEvent);

@@ -58,38 +58,26 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	private JLabel info = new JLabel();
 	private final EventTableModel model;
 	private final IGlobalEventMonitor delegate;
-	private final EventMonitorType type;
 	
 	private boolean enabled = true;
 	
 	private int numEvents = 0;
 	private int numSilentEvents = 0;
+	private int numExceptions = 0;
 	
 	/**
 	 * Creates a simple event monitor.
 	 */
 	public EventMonitor(){
-		this(EventMonitorType.BEFORE_DISPATCH, null, DEFAULT_NUM_MESSAGES_LOGGED);
+		this(null, DEFAULT_NUM_MESSAGES_LOGGED);
 	}
 	
 	public EventMonitor(int argMaxLogEntries){
-		this(EventMonitorType.BEFORE_DISPATCH, null, argMaxLogEntries);
+		this(null, argMaxLogEntries);
 	}
 	
 	public EventMonitor(IGlobalEventMonitor argDelegate){
-		this(EventMonitorType.BEFORE_DISPATCH, argDelegate, DEFAULT_NUM_MESSAGES_LOGGED);
-	}
-	
-	public EventMonitor(EventMonitorType argType){
-		this(argType, null, DEFAULT_NUM_MESSAGES_LOGGED);
-	}
-	
-	/**
-	 * @param argType the type of event monitor this will be.
-	 * @param argDelegate the delegate to forward calls to.  Can be null.
-	 */
-	public EventMonitor(EventMonitorType argType, IGlobalEventMonitor argDelegate){
-		this(argType, argDelegate, DEFAULT_NUM_MESSAGES_LOGGED);
+		this(argDelegate, DEFAULT_NUM_MESSAGES_LOGGED);
 	}
 	
 	/**
@@ -98,11 +86,10 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	 * @param argMaxMessages the maximum messages to keep.  Use {@link #LOG_ALL_MESSAGES}
 	 * 						 to try to log all messages.
 	 */
-	public EventMonitor(EventMonitorType argType, IGlobalEventMonitor argDelegate, int argMaxMessages){
+	public EventMonitor(IGlobalEventMonitor argDelegate, int argMaxMessages){
 		super("JMVC Event Monitor");
 		setSize(400, 400);
 		delegate = argDelegate;
-		type = argType;
 		if(argMaxMessages < 0){
 			throw new IllegalArgumentException("Number cannot be negative");
 		}
@@ -178,11 +165,6 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		if(delegate != null){
 			delegate.afterDispatch(argEvent);
 		}
-		if(enabled && type == EventMonitorType.AFTER_DISPATCH){
-			numEvents++;
-			updateInfo();
-			model.logEvent(argEvent, EventType.LISTENERS);
-		}
 	}
 	
 	/**
@@ -192,11 +174,9 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		if(delegate != null){
 			delegate.beforeDispatch(argEvent);
 		}
-		if(enabled && type == EventMonitorType.BEFORE_DISPATCH){
-			numEvents++;
-			updateInfo();
-			model.logEvent(argEvent, EventType.LISTENERS);
-		}
+		numEvents++;
+		updateInfo();
+		model.logEvent(argEvent, EventType.LISTENERS);
 	}
 	
 	/**
@@ -215,11 +195,23 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	}
 	
 	private void updateInfo(){
-		info.setText(numEvents+" total events, "+numSilentEvents+" never recieved.");
+		info.setText(numEvents+" total events, "+numSilentEvents+" never recieved, "+numExceptions+" uncaught exceptions.");
 	}
 	
 	protected static enum EventType{
-		LISTENERS, NO_LISTENERS
+		LISTENERS, NO_LISTENERS, EXCEPTION
+	}
+
+	/**
+	 * @see com.dmurph.mvc.IGlobalEventMonitor#exceptionThrown(com.dmurph.mvc.MVCEvent, java.lang.Exception)
+	 */
+	public void exceptionThrown(MVCEvent argEvent, Exception argException) {
+		if(delegate != null){
+			delegate.exceptionThrown(argEvent, argException);
+		}
+		numExceptions++;
+		updateInfo();
+		model.exceptionThrown(argEvent);
 	}
 	
 //	public static void main(String[] args) {

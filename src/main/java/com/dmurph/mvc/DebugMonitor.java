@@ -4,8 +4,8 @@
 package com.dmurph.mvc;
 
 /**
+ * Prints out all events before they dispatch.
  * @author Daniel Murphy
- *
  */
 public class DebugMonitor implements IGlobalEventMonitor {
 	
@@ -46,6 +46,14 @@ public class DebugMonitor implements IGlobalEventMonitor {
 	public void noListeners(MVCEvent argEvent) {
 		if(monitor != null){
 			monitor.noListeners(argEvent);
+		}
+	}
+	/**
+	 * @see com.dmurph.mvc.IGlobalEventMonitor#exceptionThrown(com.dmurph.mvc.MVCEvent, java.lang.Exception)
+	 */
+	public void exceptionThrown(MVCEvent argEvent, Exception argException) {
+		if(monitor != null){
+			monitor.exceptionThrown(argEvent, argException);
 		}
 	}
 	
