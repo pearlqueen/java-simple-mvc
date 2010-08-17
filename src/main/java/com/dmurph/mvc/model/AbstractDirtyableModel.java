@@ -48,11 +48,10 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	/**
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	public boolean setDirty(boolean argDirty){
+	public void setDirty(boolean argDirty){
 		boolean oldDirty = dirty;
 		dirty = argDirty;
 		super.firePropertyChange("dirty", oldDirty, dirty);
-		return oldDirty;
 	}
 	
 	/**

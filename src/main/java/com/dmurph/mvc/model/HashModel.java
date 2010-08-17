@@ -12,22 +12,25 @@ import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertible;
+import com.dmurph.mvc.support.AbstractMVCSupport;
 
 /**
  * Model that stores all properties in a HashMap, so all {@link IDirtyable}, {@link ICloneable}, and
  * {@link IRevertible} functionality is handled internally.<br/>
  * <br/>
- * This class also will forward all calls to it's
- * members if implement the associated interface.  For example, if {@link #revertChanges()} is called, then, after
+ * This class also will forward all calls to it's members if implement the associated interface.  
+ * For example, if {@link #revertChanges()} is called, then, after
  * reverting any changes to this model, it will call {@link IRevertible#revertChanges()} on any property
  * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
- * get infinite calls).  In that case override {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)},
- * {@link #isDirtyImpl(IDirtyable)}, or {@link #saveChangesImpl(IRevertible)} to prevent this.
+ * get infinite calls).  In that case you can override {@link #isDeepMVCEnabled(String)) to return false for
+ * properties that you don't want any calls forwarded to, or if you want more control, you can override
+ * {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)}, {@link #isDirtyImpl(IDirtyable)},
+ * or {@link #saveChangesImpl(IRevertible)} to prevent this as well.
  * 
  * @author Daniel Murphy
  *
  */
-public class HashModel extends AbstractRevertibleModel implements IDirtyable, ICloneable, IRevertible{
+public class HashModel extends AbstractMVCSupport implements IDirtyable, ICloneable, IRevertible{
 	private static final long serialVersionUID = 2L;
 	
 	private final HashMap<String, ModelProperty> propertyMap = new HashMap<String, ModelProperty>();
@@ -85,7 +88,6 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		this();
 		registerProperty(argProperties, PropertyType.READ_WRITE);
 	}
-	
 	
 	private void addListener(Object argObject){
 		if(argObject instanceof IModel){
@@ -257,17 +259,18 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 	}
 	
 	/**
-	 * Default just calls {@link ICloneable#clone()} (if the object is
-	 * {@link ICloneable}), but override to implement your own cloning and
-	 * to protect against loops (if the property tree goes in a loop).
-	 * @param argRevertable
-	 * @return
+	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#setDirty(boolean)
 	 */
-	protected Object cloneImpl(String argProperty, Object o){
-		if(o instanceof ICloneable){
-			return ((ICloneable) o).clone();
-		}else{
-			return o;
+	@Override
+	public synchronized void setDirty(boolean argDirty) {
+		super.setDirty(argDirty);
+		if(argDirty == false){
+			for(String key: propertyMap.keySet()){
+				ModelProperty mp = propertyMap.get(key);
+				if(mp.prop instanceof IDirtyable){
+					setDirtyImpl(key, (IDirtyable) mp.prop);
+				}
+			}
 		}
 	}
 	
@@ -293,67 +296,35 @@ public class HashModel extends AbstractRevertibleModel implements IDirtyable, IC
 		setProperty(DIRTY, ret);
 		return ret;
 	}
-	
-	/**
-	 * Default just calls {@link IDirtyable#isDirty()}, but override
-	 * to protect against loops (if the property tree goes in a loop).
-	 * @param argRevertable
-	 * @return
-	 */
-	public boolean isDirtyImpl(String argProperty, IDirtyable argDirtyable){
-		return argDirtyable.isDirty();
-	}
 
 	/**
 	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#revertChanges()
 	 */
 	@Override
-	public synchronized boolean revertChanges() {
-		boolean ret = super.revertChanges();
+	public synchronized void revertChanges() {
+		super.revertChanges();
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
-				ret = ret || revertChangesImpl(key, (IRevertible) mp.prop);
+				revertChangesImpl(key, (IRevertible) mp.prop);
 			}
 		}
 		setProperty(DIRTY, false);
-		return ret;
-	}
-	
-	/**
-	 * Default just calls {@link IRevertible#revertChanges()}, but override
-	 * to protect against loops (if the property tree goes in a loop).
-	 * @param argRevertable
-	 * @return
-	 */
-	protected boolean revertChangesImpl(String argProperty, IRevertible argRevertible){
-		return argRevertible.revertChanges();
 	}
 	
 	/**
 	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#saveChanges()
 	 */
 	@Override
-	public synchronized boolean saveChanges() {
-		boolean ret = super.saveChanges();
+	public synchronized void saveChanges() {
+		super.saveChanges();
 		setProperty(DIRTY, false);
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
-				ret = ret || saveChangesImpl(key, (IRevertible) mp.prop);
+				saveChangesImpl(key, (IRevertible) mp.prop);
 			}
 		}
-		return ret;
-	}
-	
-	/**
-	 * Default just calls {@link IRevertible#saveChanges()}, but override
-	 * to protect against loops (if the property tree goes in a loop).
-	 * @param argRevertible
-	 * @return
-	 */
-	protected boolean saveChangesImpl(String argProperty, IRevertible argRevertible){
-		return argRevertible.saveChanges();
 	}
 	
 	private static class ModelProperty{

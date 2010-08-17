@@ -79,17 +79,13 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	 * the model is dirty until {@link #saveChanges()},
 	 * {@link #revertChanges()}, or this method is called
 	 * with false.
-	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	public boolean setDirty(boolean argDirty) {
-		boolean dirty = isDirty();
+	public void setDirty(boolean argDirty) {
 		if(argDirty){
 			overridingDirty = true;
-			return dirty;
 		}else{
 			overridingDirty = false;
 			saveChanges();
-			return dirty;
 		}
 	}
 	
@@ -107,14 +103,14 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 	/**
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	public boolean saveChanges() {
-		return revertibleSupport.saveChanges();
+	public void saveChanges() {
+		revertibleSupport.saveChanges();
 	}
 	
 	/**
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	public boolean revertChanges() {
-		return revertibleSupport.revertChanges();
+	public void revertChanges() {
+		revertibleSupport.revertChanges();
 	}
 }

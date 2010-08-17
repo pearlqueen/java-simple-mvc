@@ -36,15 +36,13 @@ public interface IRevertible {
 	 * further calls to {@link #revertChanges()}
 	 * will revert changes to the model's current
 	 * state.
-	 * @return if there were changes to save
 	 */
-	public boolean saveChanges();
+	public void saveChanges();
 	
 	/**
 	 * Reverts the model to the last time {@link #saveChanges()}
 	 * was called, or to it's original state if {@link #saveChanges()}
 	 * was never called.
-	 * @return if changed were reverted
 	 */
-	public boolean revertChanges();
+	public void revertChanges();
 }

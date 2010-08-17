@@ -256,7 +256,7 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * all {@link IDirtyable} objects in this array.
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	public synchronized boolean setDirty( boolean argDirty) {
+	public synchronized void setDirty( boolean argDirty) {
 		boolean oldDirty = dirty;
 		dirty = argDirty;
 		if(!dirty){
@@ -265,7 +265,6 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 			}
 		}
 		firePropertyChange(DIRTY, oldDirty, dirty);
-		return oldDirty;
 	}
 	
 	/**
@@ -285,15 +284,12 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	public synchronized boolean revertChanges() {
-		if(!isDirty()){
-			return false;
-		}
+	public synchronized void revertChanges() {
 		setFromSaved();
 		for(E e: this){
 			revertChangesImpl(e);
 		}
-		return true;
+		setDirty(false);
 	}
 	
 	/**
@@ -311,15 +307,12 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	public synchronized boolean saveChanges() {
-		if(!isDirty()){
-			return false;
-		}
+	public synchronized void saveChanges() {
 		setToSaved();
 		for(E e: this){
 			saveChangesImpl(e);
 		}
-		return true;
+		setDirty(false);
 	}
 	
 	/**

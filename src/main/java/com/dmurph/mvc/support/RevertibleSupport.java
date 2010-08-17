@@ -66,32 +66,26 @@ public class RevertibleSupport implements IRevertible{
 	/**
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	public boolean saveChanges() {
-		boolean saved = false;
+	public void saveChanges() {
 		for(String key : propertyMap.keySet()){
 			PropertyWrapper wrapper = propertyMap.get(key);
 			if(wrapper.isDirty()){
-				saved = true;
 				wrapper.cleanObject = wrapper.dirtyObject;
 			}
 		}
-		return saved;
 	}
 	
 	/**
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	public boolean revertChanges() {
-		boolean reverted = false;
+	public void revertChanges() {
 		for(String key : propertyMap.keySet()){
 			PropertyWrapper wrapper = propertyMap.get(key);
 			if(wrapper.isDirty()){
-				reverted = true;
 				wrapper.dirtyObject = wrapper.cleanObject;
 				supportable.setProperty(wrapper.name, wrapper.cleanObject);
 			}
 		}
-		return reverted;
 	}
 	
 	public static class PropertyWrapper{

@@ -40,7 +40,6 @@ public interface IDirtyable {
 	/**
 	 * Sets if the object is dirty or not
 	 * @param argDirty
-	 * @return the previous dirty value
 	 */
-	public boolean setDirty(boolean argDirty);
+	public void setDirty(boolean argDirty);
 }

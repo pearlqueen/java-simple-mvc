@@ -41,15 +41,16 @@ import com.dmurph.mvc.IRevertible;
  * ({@link IModel#DIRTY} - which will also fire if any children do), and if an element in the array changed ({@link #CHANGED})
  * or added ({@link #ADDED}.<br/>
  * <br/>
- * This class also will forward all calls to it's
- * members if implement the associated interface.  For example, if {@link #revertChanges()} is called, then, after
+ * This class also will forward all calls to it's members if implement the associated interface.  
+ * For example, if {@link #revertChanges()} is called, then, after
  * reverting any changes to this model, it will call {@link IRevertible#revertChanges()} on any property
  * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
- * get infinite calls).  In that case override {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)},
- * {@link #isDirtyImpl(IDirtyable)}, {@link #setDirtyImpl(IDirtyable, boolean)}, or {@link #saveChangesImpl(IRevertible)}
- * to prevent this.<br/>
+ * get infinite calls).  In that case, or if you just don't want any calls to get forwarded to certain objects,
+ *  you can you can override
+ * {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)}, {@link #isDirtyImpl(IDirtyable)},
+ * or {@link #saveChangesImpl(IRevertible)} to prevent this.<br/>
  * <br/>
- * All the operations are also synchronized, as most MVC implementations are multithreaded, and any 
+ * All the operations are also synchronized, as most MVC implementations are multithreaded.
  * @author Daniel Murphy
  */
 public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertible {
@@ -312,7 +313,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	 * all {@link IDirtyable} objects in this array.
 	 * @see com.dmurph.mvc.IDirtyable#setDirty(boolean)
 	 */
-	public synchronized boolean setDirty( boolean argDirty) {
+	public synchronized void setDirty( boolean argDirty) {
 		boolean oldDirty = dirty;
 		dirty = argDirty;
 		if(!dirty){
@@ -321,7 +322,6 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 			}
 		}
 		firePropertyChange(DIRTY, oldDirty, dirty);
-		return oldDirty;
 	}
 	
 	/**
@@ -341,15 +341,12 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
-	public synchronized boolean revertChanges() {
-		if(!isDirty()){
-			return false;
-		}
+	public synchronized void revertChanges() {
 		setFromSaved();
 		for(E e: this){
 			revertChangesImpl(e);
 		}
-		return true;
+		setDirty(false);
 	}
 	
 	/**
@@ -367,15 +364,12 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
-	public synchronized boolean saveChanges() {
-		if(!isDirty()){
-			return false;
-		}
+	public synchronized void saveChanges() {
 		setToSaved();
 		for(E e: this){
 			saveChangesImpl(e);
 		}
-		return true;
+		setDirty(false);
 	}
 	
 	/**
