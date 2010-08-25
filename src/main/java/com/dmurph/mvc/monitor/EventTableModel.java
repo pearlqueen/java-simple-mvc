@@ -114,7 +114,7 @@ public class EventTableModel extends AbstractTableModel {
 				if(entry.type == EventType.NO_LISTENERS){
 					return "Never Received";
 				}else if(entry.type == EventType.EXCEPTION){
-					return "Exception Thrown";
+					return "<html><font color=\"FF0000\">Exception Thrown</font></html>";
 				}
 				return null;
 			case 5:

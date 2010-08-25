@@ -88,7 +88,7 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	 */
 	public EventMonitor(IGlobalEventMonitor argDelegate, int argMaxMessages){
 		super("JMVC Event Monitor");
-		setSize(400, 400);
+		setSize(500, 400);
 		delegate = argDelegate;
 		if(argMaxMessages < 0){
 			throw new IllegalArgumentException("Number cannot be negative");

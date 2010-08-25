@@ -212,6 +212,15 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
+	 * Tells you if this hash model contains the given property.
+	 * @param argProperty
+	 * @return
+	 */
+	public synchronized boolean containsProperty(String argProperty){
+		return propertyMap.containsKey(argProperty);
+	}
+	
+	/**
 	 * @see java.lang.Object#clone()
 	 */
 	@Override

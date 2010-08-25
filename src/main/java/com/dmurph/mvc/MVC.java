@@ -62,7 +62,9 @@ public class MVC extends Thread{
 	private volatile static int threadCounter = 0;
 	
 	private MVC() {
-		super(mvcThreadGroup, "MVC Thread #"+(threadCounter++));
+		super(mvcThreadGroup, "MVC Thread #"+(threadCounter));
+		threadCounter += 1;
+		System.out.println("Next thread counter: "+threadCounter);
 		mvcThreads.add(this);
 		monitor = new WarningMonitor();
 	}
