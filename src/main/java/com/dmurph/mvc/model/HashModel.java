@@ -296,7 +296,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.support.AbstractMVCSupport#isDirty()
+	 * @see com.dmurph.mvc.IDirtyable#isDirty()
 	 */
 	public synchronized boolean isDirty() {
 		if((Boolean)getProperty(DIRTY)){
@@ -321,7 +321,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 
 	/**
-	 * @see com.dmurph.mvc.support.AbstractMVCSupport#revertChanges()
+	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
 	public synchronized void revertChanges() {
 		revertibleSupport.revertChanges();
@@ -335,7 +335,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.support.AbstractMVCSupport#saveChanges()
+	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
 	public synchronized void saveChanges() {
 		setProperty(DIRTY, false);

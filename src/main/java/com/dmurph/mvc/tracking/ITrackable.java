@@ -32,7 +32,7 @@ import com.dmurph.mvc.MVC;
  * along with this interface.<br/>
  * If {@link #getTrackingCategory()} or {@link #getTrackingAction()} returns null,
  * then the tracking will be ignored.  But the label and value can be null.
- * @author daniel
+ * @author Daniel Murphy
  */
 public interface ITrackable {
 
@@ -45,7 +45,7 @@ public interface ITrackable {
 	
 	/**
 	 * Get the tracking action.  This is the label for the event in 
-	 * google analytics.  This is required not to be null.
+	 * Google Analytics.  This is required not to be null.
 	 * @return
 	 */
 	public String getTrackingAction();

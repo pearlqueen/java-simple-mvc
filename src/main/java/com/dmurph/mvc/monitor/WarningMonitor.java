@@ -1,22 +1,28 @@
 /**
- * Created on Jul 13, 2010, 4:49:22 PM
+ * Created on Jun 22, 2010, 1:53:26 AM
  */
-package com.dmurph.mvc;
+package com.dmurph.mvc.monitor;
+
+import com.dmurph.mvc.I18n;
+import com.dmurph.mvc.IGlobalEventMonitor;
+import com.dmurph.mvc.MVC;
+import com.dmurph.mvc.MVCEvent;
 
 /**
- * Prints out all events before they dispatch.
- * @author Daniel Murphy
+ * Default monitor for {@link MVC#getGlobalEventMonitor()}, warns the developer
+ * through {@link System#err} that an event has no listeners.
  */
-public class DebugMonitor implements IGlobalEventMonitor {
+public class WarningMonitor implements IGlobalEventMonitor {
 	
 	private IGlobalEventMonitor monitor;
 	
-	public DebugMonitor(){
+	public WarningMonitor(){
 		this(null);
 	}
-	public DebugMonitor(IGlobalEventMonitor argMonitor){
+	public WarningMonitor(IGlobalEventMonitor argMonitor){
 		monitor = argMonitor;
 	}
+	
 	/**
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#afterDispatch(com.dmurph.mvc.MVCEvent)
 	 */
@@ -33,21 +39,19 @@ public class DebugMonitor implements IGlobalEventMonitor {
 		if(monitor != null){
 			monitor.beforeDispatch(argEvent);
 		}
-		if(argEvent instanceof ObjectEvent<?>){
-			System.out.println(I18n.getText("monitor.dispatchingValue", argEvent.key, ((ObjectEvent<?>) argEvent).getValue().toString()));
-		}else{
-			System.out.println(I18n.getText("monitor.dispatching", argEvent.key));
-		}
 	}
 	
 	/**
+	 * Warns to the console that an event has no listeners
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#noListeners(com.dmurph.mvc.MVCEvent)
 	 */
 	public void noListeners(MVCEvent argEvent) {
 		if(monitor != null){
 			monitor.noListeners(argEvent);
 		}
+		System.err.println(I18n.getText("monitor.noListeners", argEvent.key));
 	}
+	
 	/**
 	 * @see com.dmurph.mvc.IGlobalEventMonitor#exceptionThrown(com.dmurph.mvc.MVCEvent, java.lang.Exception)
 	 */
@@ -55,6 +59,8 @@ public class DebugMonitor implements IGlobalEventMonitor {
 		if(monitor != null){
 			monitor.exceptionThrown(argEvent, argException);
 		}
+		// TODO locale
+		System.err.println("Exception thrown when dispatching event "+argEvent+":"+argException.toString());
+		argException.printStackTrace(System.err);
 	}
-	
 }
