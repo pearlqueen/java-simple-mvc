@@ -61,7 +61,7 @@ public abstract class AbstractDirtyableModel extends AbstractModel implements ID
 	protected void firePropertyChange(String argPropertyName, Object argOldValue, Object argNewValue) {
 		if(argOldValue != null && !argOldValue.equals(argNewValue)){
 			setDirty(true);
-		}else if(argNewValue == null && argNewValue != null){
+		}else if(argOldValue == null && argNewValue != null){
 			setDirty(true);
 		}
 		super.firePropertyChange(argPropertyName, argOldValue, argNewValue);

@@ -23,5 +23,5 @@ public interface IModel {
 	 * @param argListener
 	 */
 	public abstract void removePropertyChangeListener(PropertyChangeListener argListener);
-	
+
 }

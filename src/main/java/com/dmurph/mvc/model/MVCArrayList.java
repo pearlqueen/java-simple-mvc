@@ -54,7 +54,7 @@ import com.dmurph.mvc.IRevertible;
  * @author Daniel Murphy
  */
 public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertible {
-	private static final long serialVersionUID = 4890270966369581329L;
+	private static final long serialVersionUID = 2L;
 	
 	/**
 	 * Array size property name for listening to property change events

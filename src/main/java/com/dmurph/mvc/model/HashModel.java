@@ -13,6 +13,9 @@ import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertible;
 import com.dmurph.mvc.support.AbstractMVCSupport;
+import com.dmurph.mvc.support.ISupportable;
+import com.dmurph.mvc.support.RevertibleSupport;
+import com.dmurph.mvc.support.RevertibleSupport.PropertyWrapper;
 
 /**
  * Model that stores all properties in a HashMap, so all {@link IDirtyable}, {@link ICloneable}, and
@@ -30,10 +33,11 @@ import com.dmurph.mvc.support.AbstractMVCSupport;
  * @author Daniel Murphy
  *
  */
-public class HashModel extends AbstractMVCSupport implements IDirtyable, ICloneable, IRevertible{
+public class HashModel extends AbstractMVCSupport implements IDirtyable, ICloneable, IRevertible, IModel{
 	private static final long serialVersionUID = 2L;
 	
 	private final HashMap<String, ModelProperty> propertyMap = new HashMap<String, ModelProperty>();
+	private final RevertibleSupport revertibleSupport;
 	
 	public enum PropertyType{
 		/**
@@ -76,6 +80,12 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	 * Constructs a hash model with an {@link IModel#DIRTY} property.
 	 */
 	public HashModel(){
+		revertibleSupport = new RevertibleSupport(propertyChangeSupport, new ISupportable() {
+			public void setProperty(String argPropertyName, Object argProperty) {
+				HashModel.this.setProperty(argPropertyName, argProperty);
+			}
+		}, this);
+		
 		registerProperty(DIRTY, PropertyType.READ_WRITE, false);
 	}
 	
@@ -148,7 +158,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	 * {@link PropertyType#READ_WRITE}.  If the property isn't defined, it will be registered
 	 * and set with the property type of {@link PropertyType#READ_WRITE}.
 	 * @see #getPropertyType(String)
-	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#setProperty(java.lang.String, java.lang.Object)
+	 * @see com.dmurph.mvc.support.AbstractMVCSupport#setProperty(java.lang.String, java.lang.Object)
 	 */
 	public synchronized Object setProperty(String argKey, Object argProperty){
 		if(propertyMap.containsKey(argKey)){
@@ -255,6 +265,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 				ModelProperty mp = other.propertyMap.get(key);
 				registerProperty(key, mp.type);
 				
+				// references itself
 				if(mp.prop == argOther){
 					setProperty(key, this);
 					continue;
@@ -268,11 +279,11 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#setDirty(boolean)
+	 * If false, this is the equivalent of {@link #saveChanges()}
+	 * @see IDirtyable#setDirty(boolean)
 	 */
-	@Override
 	public synchronized void setDirty(boolean argDirty) {
-		super.setDirty(argDirty);
+		setProperty(DIRTY, argDirty);
 		if(argDirty == false){
 			for(String key: propertyMap.keySet()){
 				ModelProperty mp = propertyMap.get(key);
@@ -280,38 +291,40 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 					setDirtyImpl(key, (IDirtyable) mp.prop);
 				}
 			}
+			saveChanges();
 		}
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#isDirty()
+	 * @see com.dmurph.mvc.support.AbstractMVCSupport#isDirty()
 	 */
-	@Override
 	public synchronized boolean isDirty() {
-		boolean ret = super.isDirty();
-		if(ret){
-			return ret;
+		if((Boolean)getProperty(DIRTY)){
+			return true;
 		}
+		for(PropertyWrapper prop : revertibleSupport.getRecordedProperties()){
+			if(prop.isDirty()){
+				return true;
+			}
+		}
+		boolean ret = false;
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IDirtyable){
 				ret = ret || isDirtyImpl(key, (IDirtyable) mp.prop);
 				if(ret){
-					setProperty(DIRTY, ret);
 					return ret;
 				}
 			}
 		}
-		setProperty(DIRTY, ret);
 		return ret;
 	}
 
 	/**
-	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#revertChanges()
+	 * @see com.dmurph.mvc.support.AbstractMVCSupport#revertChanges()
 	 */
-	@Override
 	public synchronized void revertChanges() {
-		super.revertChanges();
+		revertibleSupport.revertChanges();
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
@@ -322,12 +335,11 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
-	 * @see com.dmurph.mvc.model.AbstractRevertibleModel#saveChanges()
+	 * @see com.dmurph.mvc.support.AbstractMVCSupport#saveChanges()
 	 */
-	@Override
 	public synchronized void saveChanges() {
-		super.saveChanges();
 		setProperty(DIRTY, false);
+		revertibleSupport.saveChanges();
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
 			if(mp.prop instanceof IRevertible){
@@ -336,8 +348,95 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		}
 	}
 	
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("HashModel[");
+		for(String s: propertyMap.keySet()){
+			sb.append(s);
+			sb.append("=");
+			sb.append(propertyMap.get(s).prop);
+			sb.append(", ");
+		}
+		sb.delete(sb.length()-2, sb.length());
+		sb.append("]");
+		return sb.toString();
+	}
+	
+	public void printModel(){
+		System.out.println(toString());
+	}
+
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((propertyMap == null) ? 0 : propertyMap.hashCode());
+		return result;
+	}
+
+	/**
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		HashModel other = (HashModel) obj;
+		if (propertyMap == null) {
+			if (other.propertyMap != null)
+				return false;
+		}
+		else if (!propertyMap.equals(other.propertyMap))
+			return false;
+		return true;
+	}
+
+
 	private static class ModelProperty{
 		PropertyType type;
 		Object prop;
+		/**
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((prop == null) ? 0 : prop.hashCode());
+			result = prime * result + ((type == null) ? 0 : type.hashCode());
+			return result;
+		}
+		/**
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ModelProperty other = (ModelProperty) obj;
+			if (prop == null) {
+				if (other.prop != null)
+					return false;
+			}
+			else if (!prop.equals(other.prop))
+				return false;
+			if (type != other.type)
+				return false;
+			return true;
+		}
 	}
 }

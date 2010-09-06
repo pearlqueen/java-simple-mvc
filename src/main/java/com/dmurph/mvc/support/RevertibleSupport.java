@@ -38,37 +38,47 @@ import com.dmurph.mvc.IRevertible;
  */
 public class RevertibleSupport implements IRevertible{
 	
-	private final HashMap<String, PropertyWrapper> propertyMap = new HashMap<String, PropertyWrapper>();
+	private final HashMap<String, PropertyWrapper> revertibleProperties = new HashMap<String, PropertyWrapper>();
 	private final ISupportable supportable;
 	
-	public RevertibleSupport(PropertyChangeSupport argPropertyChangeSupport, ISupportable argSupportable){
+	/**
+	 * 
+	 * @param argPropertyChangeSupport
+	 * @param argSupportable
+	 * @param argSource the source that the events have to originate from.  The changes are not recorded if the source doesn't match the event
+	 * source.
+	 */
+	public RevertibleSupport(PropertyChangeSupport argPropertyChangeSupport, ISupportable argSupportable, final Object argSource){
 		supportable = argSupportable;
 		argPropertyChangeSupport.addPropertyChangeListener(new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent argEvt) {
-				if(propertyMap.containsKey(argEvt.getPropertyName())){
-					PropertyWrapper wrapper = propertyMap.get(argEvt.getPropertyName());
+				if(argEvt.getSource() != argSource){
+					return; // don't record if the source isn't correct
+				}
+				if(revertibleProperties.containsKey(argEvt.getPropertyName())){
+					PropertyWrapper wrapper = revertibleProperties.get(argEvt.getPropertyName());
 					wrapper.dirtyObject = argEvt.getNewValue();
 				}else{
 					PropertyWrapper wrapper = new PropertyWrapper();
 					wrapper.name = argEvt.getPropertyName();
 					wrapper.cleanObject = argEvt.getOldValue();
 					wrapper.dirtyObject = argEvt.getNewValue();
-					propertyMap.put(argEvt.getPropertyName(), wrapper);
+					revertibleProperties.put(argEvt.getPropertyName(), wrapper);
 				}
 			}
 		});
 	}
 	
 	public Collection<PropertyWrapper> getRecordedProperties(){
-		return propertyMap.values();
+		return revertibleProperties.values();
 	}
 	
 	/**
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */
 	public void saveChanges() {
-		for(String key : propertyMap.keySet()){
-			PropertyWrapper wrapper = propertyMap.get(key);
+		for(String key : revertibleProperties.keySet()){
+			PropertyWrapper wrapper = revertibleProperties.get(key);
 			if(wrapper.isDirty()){
 				wrapper.cleanObject = wrapper.dirtyObject;
 			}
@@ -79,13 +89,46 @@ public class RevertibleSupport implements IRevertible{
 	 * @see com.dmurph.mvc.IRevertible#revertChanges()
 	 */
 	public void revertChanges() {
-		for(String key : propertyMap.keySet()){
-			PropertyWrapper wrapper = propertyMap.get(key);
+		for(String key : revertibleProperties.keySet()){
+			PropertyWrapper wrapper = revertibleProperties.get(key);
 			if(wrapper.isDirty()){
 				wrapper.dirtyObject = wrapper.cleanObject;
 				supportable.setProperty(wrapper.name, wrapper.cleanObject);
 			}
 		}
+	}
+	
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((revertibleProperties == null) ? 0 : revertibleProperties.hashCode());
+		return result;
+	}
+
+	/**
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RevertibleSupport other = (RevertibleSupport) obj;
+		if (revertibleProperties == null) {
+			if (other.revertibleProperties != null)
+				return false;
+		}
+		else if (!revertibleProperties.equals(other.revertibleProperties))
+			return false;
+		
+		return true;
 	}
 	
 	public static class PropertyWrapper{

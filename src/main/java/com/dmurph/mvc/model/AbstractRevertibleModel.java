@@ -52,7 +52,7 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 			public void setProperty(String argPropertyName, Object argProperty) {
 				AbstractRevertibleModel.this.setProperty(argPropertyName, argProperty);
 			}
-		});
+		}, this);
 	}
     /**
      * If the model is "dirty", or changed since last save.  This
@@ -85,7 +85,7 @@ public abstract class AbstractRevertibleModel extends AbstractModel implements I
 			overridingDirty = true;
 		}else{
 			overridingDirty = false;
-			saveChanges();
+			revertibleSupport.saveChanges();
 		}
 	}
 	

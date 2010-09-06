@@ -6,14 +6,14 @@ package com.dmurph.mvc.support;
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IRevertible;
-import com.dmurph.mvc.model.AbstractRevertibleModel;
+import com.dmurph.mvc.model.AbstractModel;
 
 /**
  * For for internal use, this includes methods that the user can override to control the mvc support of the class.
  * @author Daniel Murphy
  *
  */
-public abstract class AbstractMVCSupport extends AbstractRevertibleModel implements ICloneable, IDirtyable, IRevertible {
+public abstract class AbstractMVCSupport extends AbstractModel implements ICloneable, IDirtyable, IRevertible {
 	private static final long serialVersionUID = 1L;
 
 	/**
