@@ -29,6 +29,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
@@ -108,6 +109,26 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		if(argObject instanceof IModel){
 			((IModel) argObject).removePropertyChangeListener(childPropertyChangeListener);
 		}
+	}
+	
+	/**
+	 * @see java.util.ArrayList#addAll(java.util.Collection)
+	 */
+	@Override
+	public boolean addAll(Collection<? extends E> argC) {
+		boolean ret = super.addAll(argC);
+		if(!ret){
+			return false;
+		}
+		for(E e : argC){
+			addListener(e);
+			propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+		}
+		firePropertyChange(SIZE, size() - 1, size());
+		boolean old = dirty;
+		dirty = true;
+		firePropertyChange(DIRTY, old, dirty);
+		return ret;
 	}
     
 	@Override
@@ -306,7 +327,25 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 		}
 		return false;
 	}
-	
+	/**
+	 * @see java.util.ArrayList#addAll(int, java.util.Collection)
+	 */
+	@Override
+	public boolean addAll(int argIndex, Collection<? extends E> argC) {
+		boolean ret = super.addAll(argIndex, argC);
+		if(!ret){
+			return false;
+		}
+		for(E e : argC){
+			addListener(e);
+			propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+		}
+		firePropertyChange(SIZE, size() - 1, size());
+		boolean old = dirty;
+		dirty = true;
+		firePropertyChange(DIRTY, old, dirty);
+		return ret;
+	}
 	/**
 	 * Sets the dirty variable and, if argDirty is false,
 	 * then will call {@link IDirtyable#setDirty(boolean)} on

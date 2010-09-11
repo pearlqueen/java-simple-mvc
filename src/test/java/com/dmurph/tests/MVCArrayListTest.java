@@ -45,6 +45,10 @@ public class MVCArrayListTest extends TestCase{
 		
 		hm.setDirty(true);
 		assertEquals(true, hm.isDirty());
+		
+		hm.setDirty(false);
+		hm.addAll(imbeded);
+		assertEquals(true, hm.isDirty());
 	}
 	
 	@SuppressWarnings("unchecked")
