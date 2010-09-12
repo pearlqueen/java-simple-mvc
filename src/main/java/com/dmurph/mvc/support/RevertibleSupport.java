@@ -97,17 +97,6 @@ public class RevertibleSupport implements IRevertible{
 			}
 		}
 	}
-	
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((revertibleProperties == null) ? 0 : revertibleProperties.hashCode());
-		return result;
-	}
 
 	/**
 	 * @see java.lang.Object#equals(java.lang.Object)

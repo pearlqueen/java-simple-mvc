@@ -368,18 +368,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	public void printModel(){
 		System.out.println(toString());
 	}
-
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((propertyMap == null) ? 0 : propertyMap.hashCode());
-		return result;
-	}
-
+	
 	/**
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -405,17 +394,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	private static class ModelProperty{
 		PropertyType type;
 		Object prop;
-		/**
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((prop == null) ? 0 : prop.hashCode());
-			result = prime * result + ((type == null) ? 0 : type.hashCode());
-			return result;
-		}
+
 		/**
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
