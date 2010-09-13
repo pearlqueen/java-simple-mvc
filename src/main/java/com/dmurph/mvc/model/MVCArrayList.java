@@ -35,7 +35,6 @@ import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertible;
-import com.dmurph.mvc.support.AbstractMVCSupport;
 
 /**
  * A full mvc implementation of an {@link ArrayList}.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
@@ -49,9 +48,9 @@ import com.dmurph.mvc.support.AbstractMVCSupport;
  * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
  * get infinite calls).  In that case, or if you just don't want any calls to get forwarded to certain objects,
  *  you can you can override
- * {@link #cloneImpl(Object)}, {@link AbstractMVCSupport#revertChangesImpl(Object)}, {@link AbstractMVCSupport#isDirtyImpl(Object)},
- * {@link AbstractMVCSupport#setDirtyImpl}
- * or {@link AbstractMVCSupport#saveChangesImpl(Object)} to prevent this.<br/>
+ * {@link #cloneImpl(Object)}, {@link #revertChangesImpl(Object)}, {@link #isDirtyImpl(Object)},
+ * {@link #setDirtyImpl(Object, boolean)}
+ * or {@link #saveChangesImpl(Object)} to prevent this.<br/>
  * <br/>
  * All the operations are also synchronized, as most MVC implementations are multithreaded.
  * @author Daniel Murphy
@@ -118,6 +117,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	 */
 	@Override
 	public boolean addAll(Collection<? extends E> argC) {
+		int oldSize = size();
 		boolean ret = super.addAll(argC);
 		if(!ret){
 			return false;
@@ -126,7 +126,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 			addListener(e);
 			propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
 		}
-		firePropertyChange(SIZE, size() - 1, size());
+		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
@@ -334,6 +334,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 	 */
 	@Override
 	public boolean addAll(int argIndex, Collection<? extends E> argC) {
+		int oldSize = size();
 		boolean ret = super.addAll(argIndex, argC);
 		if(!ret){
 			return false;
@@ -342,7 +343,7 @@ public class MVCArrayList<E extends Object> extends ArrayList<E> implements IMod
 			addListener(e);
 			propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
 		}
-		firePropertyChange(SIZE, size() - 1, size());
+		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
