@@ -37,24 +37,26 @@ public abstract class AbstractMVCSupport extends AbstractModel implements IClone
 	}
 	
 	/** 
-	 * Default just calls {@link IDirtyable#setDirty(boolean)}, but override
+	 * Default just calls {@link IDirtyable#setDirty(boolean)} if the object
+	 * is {@link IDirtyable}, but override
 	 * to protect against loops (if the property tree goes in a loop).
 	 * @see #isDeepMVCEnabled(String)
 	 */
-	protected void setDirtyImpl(String argProperty, IDirtyable argDirtyable){
-		if(isDeepMVCEnabled(argProperty)){
-			argDirtyable.setDirty(false);
+	protected void setDirtyImpl(String argProperty, Object argObject){
+		if(isDeepMVCEnabled(argProperty) && argObject instanceof IDirtyable){
+			((IDirtyable)argObject).setDirty(false);
 		}
 	}
 	
 	/**
-	 * Default just calls {@link IDirtyable#isDirty()}, but override
+	 * Default just calls {@link IDirtyable#isDirty()} if the object
+	 * is {@link IDirtyable}, but override
 	 * to protect against loops (if the property tree goes in a loop).
 	 * @see #isDeepMVCEnabled(String)
 	 */
-	protected boolean isDirtyImpl(String argProperty, IDirtyable argDirtyable){
-		if(isDeepMVCEnabled(argProperty)){
-			return argDirtyable.isDirty();
+	protected boolean isDirtyImpl(String argProperty, Object argObject){
+		if(isDeepMVCEnabled(argProperty) && argObject instanceof IDirtyable){
+			return ((IDirtyable) argObject).isDirty();
 		}else{
 			return false;
 		}
@@ -76,9 +78,9 @@ public abstract class AbstractMVCSupport extends AbstractModel implements IClone
 	 * to protect against loops (if the property tree goes in a loop).
 	 * @see #isDeepMVCEnabled(String)
 	 */
-	protected void revertChangesImpl(String argProperty, IRevertible argRevertible){
-		if(isDeepMVCEnabled(argProperty)){
-			argRevertible.revertChanges();
+	protected void revertChangesImpl(String argProperty, Object argObject){
+		if(isDeepMVCEnabled(argProperty) && argObject instanceof IRevertible){
+			((IRevertible)argObject).revertChanges();
 		}
 	}
 	
@@ -87,9 +89,9 @@ public abstract class AbstractMVCSupport extends AbstractModel implements IClone
 	 * to protect against loops (if the property tree goes in a loop).
 	 * @see #isDeepMVCEnabled(String)
 	 */
-	protected void saveChangesImpl(String argProperty, IRevertible argRevertible){
-		if(isDeepMVCEnabled(argProperty)){
-			argRevertible.saveChanges();
+	protected void saveChangesImpl(String argProperty, Object argObject){
+		if(isDeepMVCEnabled(argProperty) && argObject instanceof IRevertible){
+			((IRevertible)argObject).saveChanges();
 		}
 	}
 	

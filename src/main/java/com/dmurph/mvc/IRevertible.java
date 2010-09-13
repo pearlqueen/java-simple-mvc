@@ -25,7 +25,7 @@
 package com.dmurph.mvc;
 
 /**
- * An object that is revertable, where changes
+ * An object that is Revertible, where changes
  * can be "canceled".
  * @author Daniel Murphy
  */

@@ -303,7 +303,7 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	}
 
 	/**
-	 * Also calls {@link IRevertable#saveChanges()} on all
+	 * Also calls {@link IRevertible#saveChanges()} on all
 	 * objects in the reverted array that are {@link IRevertible}.
 	 * @see com.dmurph.mvc.IRevertible#saveChanges()
 	 */

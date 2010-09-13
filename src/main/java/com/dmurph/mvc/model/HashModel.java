@@ -27,8 +27,8 @@ import com.dmurph.mvc.support.RevertibleSupport.PropertyWrapper;
  * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
  * get infinite calls).  In that case you can override {@link #isDeepMVCEnabled(String)) to return false for
  * properties that you don't want any calls forwarded to, or if you want more control, you can override
- * {@link #cloneImpl(Object)}, {@link #revertChangesImpl(IRevertible)}, {@link #isDirtyImpl(IDirtyable)},
- * or {@link #saveChangesImpl(IRevertible)} to prevent this as well.
+ * {@link #cloneImpl(String, Object)}, {@link #revertChangesImpl(String, IRevertible)}, {@link #isDirtyImpl(String, IDirtyable)},
+ * or {@link #saveChangesImpl(String, IRevertible)} to prevent this as well.
  * 
  * @author Daniel Murphy
  *
@@ -158,7 +158,6 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	 * {@link PropertyType#READ_WRITE}.  If the property isn't defined, it will be registered
 	 * and set with the property type of {@link PropertyType#READ_WRITE}.
 	 * @see #getPropertyType(String)
-	 * @see com.dmurph.mvc.support.AbstractMVCSupport#setProperty(java.lang.String, java.lang.Object)
 	 */
 	public synchronized Object setProperty(String argKey, Object argProperty){
 		if(propertyMap.containsKey(argKey)){
@@ -231,7 +230,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
-	 * @see java.lang.Object#clone()
+	 * @see ICloneable#clone()
 	 */
 	@Override
 	public ICloneable clone(){
@@ -287,9 +286,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		if(argDirty == false){
 			for(String key: propertyMap.keySet()){
 				ModelProperty mp = propertyMap.get(key);
-				if(mp.prop instanceof IDirtyable){
-					setDirtyImpl(key, (IDirtyable) mp.prop);
-				}
+				setDirtyImpl(key, mp.prop);
 			}
 			saveChanges();
 		}
@@ -310,11 +307,9 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		boolean ret = false;
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
-			if(mp.prop instanceof IDirtyable){
-				ret = ret || isDirtyImpl(key, (IDirtyable) mp.prop);
-				if(ret){
-					return ret;
-				}
+			ret = ret || isDirtyImpl(key, mp.prop);
+			if(ret){
+				return ret;
 			}
 		}
 		return ret;
@@ -327,9 +322,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		revertibleSupport.revertChanges();
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
-			if(mp.prop instanceof IRevertible){
-				revertChangesImpl(key, (IRevertible) mp.prop);
-			}
+			revertChangesImpl(key, mp.prop);
 		}
 		setProperty(DIRTY, false);
 	}
@@ -342,9 +335,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		revertibleSupport.saveChanges();
 		for(String key: propertyMap.keySet()){
 			ModelProperty mp = propertyMap.get(key);
-			if(mp.prop instanceof IRevertible){
-				saveChangesImpl(key, (IRevertible) mp.prop);
-			}
+			saveChangesImpl(key, mp.prop);
 		}
 	}
 	

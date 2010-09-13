@@ -50,7 +50,13 @@ import com.dmurph.mvc.MVCEvent;
 public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	private static final long serialVersionUID = 1L;
 	
+	/**
+	 * Default number of messages logged.
+	 */
 	public static final int DEFAULT_NUM_MESSAGES_LOGGED = 500;
+	/**
+	 * Tells the monitor to log all messages
+	 */
 	public static final int LOG_ALL_MESSAGES = Integer.MAX_VALUE;
 	
 	private JTable table = new JTable();
@@ -72,16 +78,24 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		this(null, DEFAULT_NUM_MESSAGES_LOGGED);
 	}
 	
+	/**
+	 * @param argMaxLogEntries max log entries ({@link #LOG_ALL_MESSAGES} to log all).
+	 */
 	public EventMonitor(int argMaxLogEntries){
 		this(null, argMaxLogEntries);
 	}
 	
+	/**
+	 * Creates an event monitor with a delegate (decorator pattern) to delegate calls to before
+	 * processing them with this monitor.
+	 * 
+	 * @param argDelegate
+	 */
 	public EventMonitor(IGlobalEventMonitor argDelegate){
 		this(argDelegate, DEFAULT_NUM_MESSAGES_LOGGED);
 	}
 	
 	/**
-	 * @param argType the type of event monitor this will be.
 	 * @param argDelegate the delegate to forward calls to.  Can be null.
 	 * @param argMaxMessages the maximum messages to keep.  Use {@link #LOG_ALL_MESSAGES}
 	 * 						 to try to log all messages.
