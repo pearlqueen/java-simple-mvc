@@ -55,7 +55,7 @@ import com.dmurph.mvc.IRevertible;
  * All the operations are also synchronized, as most MVC implementations are multithreaded.
  * @author Daniel Murphy
  */
-public class MVCArrayList<E extends Object> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertible {
+public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable, IDirtyable, IRevertible {
 	private static final long serialVersionUID = 2L;
 	
 	/**

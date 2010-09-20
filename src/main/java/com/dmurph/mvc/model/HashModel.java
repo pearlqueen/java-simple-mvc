@@ -25,7 +25,7 @@ import com.dmurph.mvc.support.RevertibleSupport.PropertyWrapper;
  * For example, if {@link #revertChanges()} is called, then, after
  * reverting any changes to this model, it will call {@link IRevertible#revertChanges()} on any property
  * that is {@link IRevertible}.  This can get dangerous if your property tree goes in a loop (you'll 
- * get infinite calls).  In that case you can override {@link #isDeepMVCEnabled(String)) to return false for
+ * get infinite calls).  In that case you can override {@link #isDeepMVCEnabled(String)} to return false for
  * properties that you don't want any calls forwarded to, or if you want more control, you can override
  * {@link AbstractMVCSupport#cloneImpl(String, Object)}, {@link AbstractMVCSupport#revertChangesImpl(String, Object)},
  * {@link AbstractMVCSupport#isDirtyImpl(String, Object)}, {@link AbstractMVCSupport#setDirtyImpl(String, Object)},
