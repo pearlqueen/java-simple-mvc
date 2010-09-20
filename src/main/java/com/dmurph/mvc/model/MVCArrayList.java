@@ -122,9 +122,11 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		if(!ret){
 			return false;
 		}
+		int i=0;
 		for(E e : argC){
 			addListener(e);
-			propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+			propertyChangeSupport.fireIndexedPropertyChange(ADDED, oldSize+i, null, e);
+			i++;
 		}
 		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
@@ -339,9 +341,11 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		if(!ret){
 			return false;
 		}
+		int i=0;
 		for(E e : argC){
 			addListener(e);
-			propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+			propertyChangeSupport.fireIndexedPropertyChange(ADDED, oldSize + i, null, e);
+			i++;
 		}
 		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
