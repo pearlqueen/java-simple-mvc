@@ -42,6 +42,9 @@ public class EventTableModel extends AbstractTableModel {
 	private int nextMessageIndex = 0;
 	private final int maxMessagesLogged;
 	
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	public EventTableModel(int argMaxMessagesLogged){
 		maxMessagesLogged = argMaxMessagesLogged;
 	}
@@ -67,7 +70,7 @@ public class EventTableModel extends AbstractTableModel {
 	}
 	
 	final String[] columns = {
-			"Event ID", "Event Key", "Event Class", "Event Value", "Errors", "Thread"
+			"Event ID", "Event Key", "Event Class", "Event Value", "Warnings", "Thread"
 	};
 	
 	/**
@@ -147,7 +150,12 @@ public class EventTableModel extends AbstractTableModel {
 			eventId = argEvent.id;
 			eventClass = argEvent.getClass().getSimpleName();
 			eventKey = argEvent.key;
-			eventValue = (argEvent instanceof ObjectEvent<?>)? ((ObjectEvent<?>)argEvent).getValue().toString() : null;
+			if(argEvent instanceof ObjectEvent<?>){
+				Object value = ((ObjectEvent<?>) argEvent).getValue();
+				eventValue = value != null ? value.toString() : null;
+			}else{
+				eventValue = null;
+			}
 			threadName = Thread.currentThread().getName();
 		}
 	}

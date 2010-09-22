@@ -188,9 +188,11 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		if(delegate != null){
 			delegate.beforeDispatch(argEvent);
 		}
-		numEvents++;
-		updateInfo();
-		model.logEvent(argEvent, EventType.LISTENERS);
+		if(enabled){
+			numEvents++;
+			updateInfo();
+			model.logEvent(argEvent, EventType.LISTENERS);
+		}
 	}
 	
 	/**
@@ -223,9 +225,11 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		if(delegate != null){
 			delegate.exceptionThrown(argEvent, argException);
 		}
-		numExceptions++;
-		updateInfo();
-		model.exceptionThrown(argEvent);
+		if(enabled){
+			numExceptions++;
+			updateInfo();
+			model.exceptionThrown(argEvent);
+		}
 	}
 	
 //	public static void main(String[] args) {

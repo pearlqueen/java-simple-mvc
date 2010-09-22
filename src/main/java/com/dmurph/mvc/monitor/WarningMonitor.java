@@ -49,7 +49,7 @@ public class WarningMonitor implements IGlobalEventMonitor {
 		if(monitor != null){
 			monitor.noListeners(argEvent);
 		}
-		System.err.println(I18n.getText("monitor.noListeners", argEvent.key));
+		System.out.println(I18n.getText("monitor.noListeners", argEvent.key));
 	}
 	
 	/**
