@@ -38,6 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.IGlobalEventMonitor;
 import com.dmurph.mvc.MVCEvent;
 
@@ -211,7 +212,7 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	}
 	
 	private void updateInfo(){
-		info.setText(numEvents+" total events, "+numSilentEvents+" never recieved, "+numExceptions+" uncaught exceptions.");
+		info.setText(I18n.getText("monitor.gui.info", numEvents+"", numSilentEvents+"", numExceptions+""));
 	}
 	
 	protected static enum EventType{

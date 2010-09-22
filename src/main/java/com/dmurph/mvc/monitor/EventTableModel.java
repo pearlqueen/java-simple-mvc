@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
+import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.MVCEvent;
 import com.dmurph.mvc.ObjectEvent;
 import com.dmurph.mvc.monitor.EventMonitor.EventType;
@@ -70,7 +71,9 @@ public class EventTableModel extends AbstractTableModel {
 	}
 	
 	final String[] columns = {
-			"Event ID", "Event Key", "Event Class", "Event Value", "Warnings", "Thread"
+			I18n.getText("monitor.gui.eventID"), I18n.getText("monitor.gui.eventKey"),
+			I18n.getText("monitor.gui.eventClass"), I18n.getText("monitor.gui.eventValue"),
+			I18n.getText("monitor.gui.warnings"), I18n.getText("monitor.gui.thread")
 	};
 	
 	/**
@@ -115,9 +118,9 @@ public class EventTableModel extends AbstractTableModel {
 				return (entry.eventValue != null)?entry.eventValue : "";
 			case 4:
 				if(entry.type == EventType.NO_LISTENERS){
-					return "Never Received";
+					return I18n.getText("monitor.gui.noListeners");
 				}else if(entry.type == EventType.EXCEPTION){
-					return "<html><font color=\"FF0000\">Exception Thrown</font></html>";
+					return "<html><font color=\"FF0000\">"+I18n.getText("monitor.gui.exception")+"</font></html>";
 				}
 				return null;
 			case 5:
