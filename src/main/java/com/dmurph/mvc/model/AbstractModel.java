@@ -23,7 +23,6 @@ package com.dmurph.mvc.model;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 
 import com.dmurph.mvc.IModel;
