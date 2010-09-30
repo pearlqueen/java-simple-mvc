@@ -27,6 +27,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 
 import com.dmurph.mvc.IModel;
+import com.dmurph.mvc.support.MVCPropertyChangeSupport;
 
 /**
  * <p>Abstract model class, used for storing data and throwing {@link PropertyChangeEvent}s when values are changed.
@@ -43,10 +44,10 @@ import com.dmurph.mvc.IModel;
  */
 public abstract class AbstractModel implements Serializable, IModel{
 	private static final long serialVersionUID = 1L;
-	protected final PropertyChangeSupport propertyChangeSupport;
+	protected final MVCPropertyChangeSupport propertyChangeSupport;
 		
     public AbstractModel(){
-        propertyChangeSupport = new PropertyChangeSupport(this);
+        propertyChangeSupport = new MVCPropertyChangeSupport(this);
     }
 
     /**

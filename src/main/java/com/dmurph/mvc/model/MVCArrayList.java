@@ -35,6 +35,11 @@ import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertible;
+import com.dmurph.mvc.support.MVCPropertiesAddedEvent;
+import com.dmurph.mvc.support.MVCPropertiesRemovedEvent;
+import com.dmurph.mvc.support.MVCPropertyAddedEvent;
+import com.dmurph.mvc.support.MVCPropertyChangeSupport;
+import com.dmurph.mvc.support.MVCPropertyRemovedEvent;
 
 /**
  * A full mvc implementation of an {@link ArrayList}.  Supports all operations in {@link ICloneable}, {@link IDirtyable},
@@ -65,18 +70,30 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 	public static final String SIZE = "ARRAY_LIST_SIZE";
 	
 	/**
-	 * Not exactly a property, but the name of the property when an element
-	 * is removed from the array.  The {@link IndexedPropertyChangeEvent#getIndex()}
-	 * cooresponds to the index that was removed, and is -1 if {@link #remove(Object)}
-	 * is called (we don't know the index).
+	 * Not exactly a property, but the name of the property when a <b>single</b> element
+	 * is removed from the array.  This fires an {@link MVCPropertyRemovedEvent}.  If the
+	 * index isn't known, {@link MVCPropertyRemovedEvent#isIndexed()} returns false.
 	 */
 	public static final String REMOVED = "ARRAY_LIST_REMOVED";
 	
 	/**
-	 * Not exactly a property, but the name of the property when an element
-	 * is added or inserted into the array.  This fires an {@link IndexedPropertyChangeEvent}.
+	 * Not exactly a property, but the name of the property when  <b>multiple</b> elements
+	 * are removed from the array.  This fires an {@link MVCPropertiesRemovedEvent}.
+	 */
+	public static final String REMOVED_ALL = "ARRAY_LIST_REMOVED_ALL";
+	
+	/**
+	 * Not exactly a property, but the name of the property when a <b>single</b> element
+	 * is added or inserted into the array.  This fires an {@link MVCPropertyAddedEvent}.
 	 */
 	public static final String ADDED = "ARRAY_LIST_ADDED";
+	
+	/**
+	 * Not exactly a property, but the name of the property when <b>multiple</b> elements
+	 * are added or inserted into the array (through {@link #addAll(Collection)}.
+	 * This fires an {@link MVCPropertiesAddedEvent}.
+	 */
+	public static final String ADDED_ALL = "ARRAY_LIST_ADDED_ALL";
 	/**
 	 * A value in the array was changed.  This fires an
 	 * {@link IndexedPropertyChangeEvent}.
@@ -87,7 +104,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 	private boolean dirty = false;
 	
 	private final ArrayList<E> saved = new ArrayList<E>();
-	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+	private final MVCPropertyChangeSupport propertyChangeSupport = new MVCPropertyChangeSupport(this);
 ;
 	
 	private final PropertyChangeListener childPropertyChangeListener = new PropertyChangeListener() {
@@ -122,12 +139,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		if(!ret){
 			return false;
 		}
-		int i=0;
-		for(E e : argC){
-			addListener(e);
-			propertyChangeSupport.fireIndexedPropertyChange(ADDED, oldSize+i, null, e);
-			i++;
-		}
+		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, argC, oldSize, size()-1);
 		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
 		dirty = true;
@@ -166,11 +178,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 			temp.clear();
 			temp.addAll(this);
 			super.clear();
-			for(int i=0; i<temp.size(); i++){
-				E e = temp.get(i);
-				removeListener(e);
-				propertyChangeSupport.fireIndexedPropertyChange(REMOVED, i, e, null);
-			}
+			propertyChangeSupport.firePropertiesRemovedEvent(REMOVED_ALL, temp, 0, oldSize);
 			firePropertyChange(SIZE, oldSize, 0);
 			boolean old = dirty;
 			dirty = true;
@@ -182,7 +190,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 	public synchronized E remove(int index) {
 		E ret = super.remove(index);
 		removeListener(ret);
-		propertyChangeSupport.fireIndexedPropertyChange(REMOVED, index, ret, null);
+		propertyChangeSupport.firePropertyRemovedEvent(REMOVED, ret, index);
 		firePropertyChange(SIZE, size() + 1, size());
 		boolean old = dirty;
 		dirty = true;
@@ -195,7 +203,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		boolean ret = super.remove(o);
 		if(ret){
 			removeListener(o);
-			propertyChangeSupport.fireIndexedPropertyChange(REMOVED, -1, o, null);
+			propertyChangeSupport.firePropertyRemovedEvent(REMOVED, o);
 			firePropertyChange(SIZE, size() + 1, size());
 			boolean old = dirty;
 			dirty = true;
@@ -341,12 +349,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		if(!ret){
 			return false;
 		}
-		int i=0;
-		for(E e : argC){
-			addListener(e);
-			propertyChangeSupport.fireIndexedPropertyChange(ADDED, oldSize + i, null, e);
-			i++;
-		}
+		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, argC, argIndex, argIndex+argC.size()-1);
 		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
 		dirty = true;
