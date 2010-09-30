@@ -29,6 +29,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
@@ -138,7 +140,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		if(!ret){
 			return false;
 		}
-		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, argC, oldSize, size()-1);
+		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, Collections.unmodifiableCollection(argC), oldSize, size()-1);
 		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
 		dirty = true;
@@ -177,7 +179,10 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 			temp.clear();
 			temp.addAll(this);
 			super.clear();
-			propertyChangeSupport.firePropertiesRemovedEvent(REMOVED_ALL, temp, 0, oldSize);
+			for(int i=0; i<oldSize; i++){
+				removeListener(temp.get(i));
+			}
+			propertyChangeSupport.firePropertiesRemovedEvent(REMOVED_ALL, Collections.unmodifiableCollection(temp), 0, oldSize);
 			firePropertyChange(SIZE, oldSize, 0);
 			boolean old = dirty;
 			dirty = true;
@@ -348,7 +353,11 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 		if(!ret){
 			return false;
 		}
-		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, argC, argIndex, argIndex+argC.size()-1);
+		Iterator<? extends E> it = argC.iterator();
+		while(it.hasNext()){
+			addListener(it.next());
+		}
+		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, Collections.unmodifiableCollection(argC), argIndex, argIndex+argC.size()-1);
 		firePropertyChange(SIZE, oldSize, size());
 		boolean old = dirty;
 		dirty = true;

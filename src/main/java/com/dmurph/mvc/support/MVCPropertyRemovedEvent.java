@@ -31,7 +31,7 @@ import java.beans.IndexedPropertyChangeEvent;
  * check by calling {@link #isIndexed()} and get it by calling
  * {@link #getIndex()}.  {@link #getNewValue()} will always return
  * null.
- * @author Daniel
+ * @author Daniel Murphy
  *
  */
 public class MVCPropertyRemovedEvent extends IndexedPropertyChangeEvent{

@@ -26,8 +26,9 @@ package com.dmurph.mvc.model;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -35,6 +36,11 @@ import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
 import com.dmurph.mvc.IRevertible;
+import com.dmurph.mvc.support.MVCPropertiesAddedEvent;
+import com.dmurph.mvc.support.MVCPropertiesRemovedEvent;
+import com.dmurph.mvc.support.MVCPropertyAddedEvent;
+import com.dmurph.mvc.support.MVCPropertyChangeSupport;
+import com.dmurph.mvc.support.MVCPropertyRemovedEvent;
 
 /**
  * A fully implemented {@link HashSet}, pretty much exactly like {@link MVCArrayList}.
@@ -44,25 +50,38 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	private static final long serialVersionUID = 1L;
 	
 	/**
-	 * Array size property name for listening to property change events
+	 * Set size property name for listening to property change events
 	 * @see #addPropertyChangeListener(PropertyChangeListener)
 	 */
-	public static final String SIZE = "HASH_SET_SIZE";
+	public static final String SIZE = "ARRAY_LIST_SIZE";
 	
 	/**
-	 * Not exactly a property, but the name of the property when an element
-	 * is removed from the set.
+	 * Not exactly a property, but the name of the property when a <b>single</b> element
+	 * is removed from the set.  This fires an {@link MVCPropertyRemovedEvent}.
 	 */
-	public static final String REMOVED = "HASH_SET_REMOVED";
+	public static final String REMOVED = "ARRAY_LIST_REMOVED";
 	
 	/**
-	 * Not exactly a property, but the name of the property when an element
-	 * is added or inserted into the set.
+	 * Not exactly a property, but the name of the property when  <b>multiple</b> elements
+	 * are removed from the set.  This fires an {@link MVCPropertiesRemovedEvent}.
 	 */
-	public static final String ADDED = "HASH_SET_ADDED";
+	public static final String REMOVED_ALL = "ARRAY_LIST_REMOVED_ALL";
+	
+	/**
+	 * Not exactly a property, but the name of the property when a <b>single</b> element
+	 * is added or inserted into the set.  This fires an {@link MVCPropertyAddedEvent}.
+	 */
+	public static final String ADDED = "ARRAY_LIST_ADDED";
+	
+	/**
+	 * Not exactly a property, but the name of the property when <b>multiple</b> elements
+	 * are added or inserted into the set (through {@link #addAll(Collection)}.
+	 * This fires an {@link MVCPropertiesAddedEvent}.
+	 */
+	public static final String ADDED_ALL = "ARRAY_LIST_ADDED_ALL";
 	
 	private boolean dirty = false;
-	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+	private final MVCPropertyChangeSupport propertyChangeSupport = new MVCPropertyChangeSupport(this);
 	private final HashSet<E> saved = new HashSet<E>();
 	
 	private final PropertyChangeListener childPropertyChangeListener = new PropertyChangeListener() {
@@ -110,11 +129,32 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 		boolean ret = super.add(e);
 		addListener(e);
 		firePropertyChange(SIZE, size() - 1, size());
-		propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+		propertyChangeSupport.firePropertyAddedEvent(ADDED, e);
 		boolean old = dirty;
 		dirty = true;
 		firePropertyChange(DIRTY, old, dirty);
 		return ret;
+	}
+	
+	/**
+	 * @see java.util.AbstractCollection#addAll(java.util.Collection)
+	 */
+	@Override
+	public boolean addAll(Collection<? extends E> argC) {
+		boolean modified = false;
+		Iterator<? extends E> e = argC.iterator();
+		while (e.hasNext()) {
+			E o = e.next();
+		    if (super.add(o)){
+		    	addListener(o);
+		    	modified = true;
+		    }
+		}
+		if(!modified){
+			return false;
+		}
+		propertyChangeSupport.firePropertiesAddedEvent(ADDED_ALL, Collections.unmodifiableCollection(argC));
+		return true;
 	}
 	
 	private final HashSet<E> temp = new HashSet<E>();
@@ -130,8 +170,8 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 			while(it.hasNext()){
 				E e = it.next();
 				removeListener(e);
-				firePropertyChange(REMOVED, e, null);
 			}
+			propertyChangeSupport.firePropertiesRemovedEvent(REMOVED_ALL, Collections.unmodifiableCollection(temp));
 			firePropertyChange(SIZE, oldSize, 0);
 			boolean old = dirty;
 			dirty = true;
@@ -156,17 +196,13 @@ public class MVCHashSet<E> extends HashSet<E> implements IModel, ICloneable, IDi
 	// do shallow clone, need to keep object references
 	private void setFromSaved(){
 		clear();
-		for(E e: saved){
-			add(e);
-		}
+		addAll(saved);
 	}
 	
 	// do shallow clone, need to keep object references
 	private void setToSaved(){
 		saved.clear();
-		for(E e: this){
-			saved.add(e);
-		}
+		saved.addAll(this);
 	}
 
 	/**
