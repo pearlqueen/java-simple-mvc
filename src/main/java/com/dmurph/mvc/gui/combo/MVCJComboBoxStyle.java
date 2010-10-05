@@ -22,7 +22,7 @@
 /**
  * Created at Oct 5, 2010, 2:44:43 AM
  */
-package com.dmurph.mvc.gui;
+package com.dmurph.mvc.gui.combo;
 
 /**
  * Styles for the {@link MVCJComboBox}.

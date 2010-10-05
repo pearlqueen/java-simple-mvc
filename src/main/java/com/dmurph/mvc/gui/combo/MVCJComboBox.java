@@ -22,7 +22,7 @@
 /**
  * Created at Aug 20, 2010, 2:58:08 AM
  */
-package com.dmurph.mvc.gui;
+package com.dmurph.mvc.gui.combo;
 
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;

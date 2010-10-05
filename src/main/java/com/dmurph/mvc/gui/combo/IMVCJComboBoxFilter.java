@@ -22,16 +22,17 @@
 /**
  * Created at Aug 26, 2010, 2:44:38 PM
  */
-package com.dmurph.mvc.gui;
+package com.dmurph.mvc.gui.combo;
 
 /**
+ * This allows one to filter the elements that are shown in the {@link MVCJComboBox}.
  * @author Daniel Murphy
  */
 public interface IMVCJComboBoxFilter<E>{
 	
 	/**
 	 * @param argComponent can be null
-	 * @return if the value will be put in the combo box
+	 * @return if the value will be shown in the component
 	 */
 	public boolean showItem(E argComponent);
 }

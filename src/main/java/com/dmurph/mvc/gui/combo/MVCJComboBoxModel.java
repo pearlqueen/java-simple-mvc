@@ -22,7 +22,7 @@
 /**
  * Created at Sep 9, 2010, 4:35:08 PM
  */
-package com.dmurph.mvc.gui;
+package com.dmurph.mvc.gui.combo;
 
 import java.io.Serializable;
 import java.util.Collection;
