@@ -52,29 +52,28 @@ public class MVC extends Thread{
 	
 	private static final ThreadGroup mvcThreadGroup = new ThreadGroup("MVC Thread Group");
 	private static final ArrayList<MVC> mvcThreads = new ArrayList<MVC>();
-	private volatile static MVC mainThread = new MVC();
-	private IGlobalEventMonitor monitor;
+	private volatile static MVC mainThread = new MVC(0);
+	private IGlobalEventMonitor monitor = null;
 	
 	private final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
 	private final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
 	private volatile boolean running = false;
 	private volatile JGoogleAnalyticsTracker tracker = null;
 	
-	private volatile static int threadCounter = 0;
+	private int threadCounter = 0;
 	
-	private MVC() {
-		super(mvcThreadGroup, "MVC Thread #"+(threadCounter));
-		threadCounter += 1;
-		System.out.println("Next thread counter: "+threadCounter);
+	private MVC(int argNum) {
+		super(mvcThreadGroup, "MVC Thread #"+argNum);
+		threadCounter = argNum;
 		mvcThreads.add(this);
 		monitor = new WarningMonitor();
 	}
 
-	public static void setTracker(JGoogleAnalyticsTracker tracker) {
+	public synchronized static void setTracker(JGoogleAnalyticsTracker tracker) {
 		mainThread.tracker = tracker;
 	}
 
-	public static JGoogleAnalyticsTracker getTracker() {
+	public synchronized static JGoogleAnalyticsTracker getTracker() {
 		return mainThread.tracker;
 	}
 
@@ -86,19 +85,7 @@ public class MVC extends Thread{
 	 * @param argListener
 	 */
 	public synchronized static void addEventListener( String argKey, IEventListener argListener) {
-
-		if (mainThread.listeners.containsKey(argKey)) {
-			// return if we're already listening
-			if( isEventListener( argKey, argListener)){
-				return;
-			}
-			mainThread.listeners.get(argKey).addFirst(argListener);
-		}
-		else {
-			final LinkedList<IEventListener> stack = new LinkedList<IEventListener>();
-			stack.addFirst(argListener);
-			mainThread.listeners.put(argKey, stack);
-		}
+		mainThread._addEventListener(argKey, argListener);
 	}
 	
 	/**
@@ -108,31 +95,19 @@ public class MVC extends Thread{
 	 * @return
 	 */
 	public synchronized static boolean isEventListener( String argKey, IEventListener argListener) {
-		if(!mainThread.listeners.containsKey( argKey)){
-			return false;
-		}
-		
-		LinkedList<IEventListener> stack = mainThread.listeners.get( argKey);
-		return stack.contains( argListener);
+		return mainThread._isEventListener(argKey, argListener);
 	}
 
 	/**
-	 * gets the listeners for the given event key.
+	 * Gets the listeners for the given event key.
 	 * 
 	 * @param argKey
 	 * @return
 	 */
 	public synchronized static LinkedList<IEventListener> getListeners( String argKey) {
-		if (mainThread.listeners.containsKey(argKey)) {
-			return mainThread.listeners.get(argKey);
-		}
-		else {
-			LinkedList<IEventListener> stack = new LinkedList<IEventListener>();
-			mainThread.listeners.put(argKey, stack);
-			return stack;
-		}
+		return mainThread._getListeners(argKey);
 	}
-
+	
 	/**
 	 * removes a listener from the given key.
 	 * 
@@ -142,12 +117,9 @@ public class MVC extends Thread{
 	 *         begin with
 	 */
 	public static synchronized boolean removeEventListener( String argKey, IEventListener argListener) {
-		if (mainThread.listeners.containsKey(argKey)) {
-			LinkedList<IEventListener> stack = mainThread.listeners.get(argKey);
-			return stack.remove(argListener);
-		}
-		return false;
+		return mainThread._removeEventListener(argKey, argListener);
 	}
+	
 	
 	/**
 	 * Adds an event to the dispatch queue for the MVC thread.
@@ -155,18 +127,7 @@ public class MVC extends Thread{
 	 * @param argEvent
 	 */
 	protected synchronized static void dispatchEvent( MVCEvent argEvent) {
-		if (mainThread.listeners.containsKey(argEvent.key)) {
-			mainThread.eventQueue.add( argEvent	);
-			if(!mainThread.running){
-				if(mainThread.getState() == State.NEW){
-					mainThread.start();
-				}
-			}
-		}else{
-			if(mainThread.monitor != null){
-				mainThread.monitor.noListeners(argEvent);
-			}
-		}
+		mainThread._dispatchEvent(argEvent);
 	}
 	
 	/**
@@ -183,7 +144,7 @@ public class MVC extends Thread{
 			MVC thread = (MVC) Thread.currentThread();
 			if(thread == mainThread){
 				MVC old = mainThread;
-				mainThread = new MVC();
+				mainThread = new MVC(old.threadCounter+1);
 				
 				for(MVCEvent event : old.eventQueue){
 					mainThread.eventQueue.add(event);
@@ -206,6 +167,25 @@ public class MVC extends Thread{
 		}else{
 			throw new IllegalThreadException();
 		}
+	}
+	
+	/**
+	 * Stops the dispatch thread, dispatching any remaining events
+	 * before cleanly returning.  Thread automatically gets started
+	 * when new events are dispatched
+	 */
+	public synchronized static void stopDispatchThread(){
+		mainThread.running = false;
+	}
+	
+	/**
+	 * Manually starts the dispatch thread.
+	 */
+	public synchronized static void startDispatchThread(){
+		if(mainThread.running){
+			return;
+		}
+		mainThread.start();
 	}
 	
 	/**
@@ -254,27 +234,62 @@ public class MVC extends Thread{
 		}
 	}
 	
-	/**
-	 * Stops the dispatch thread, dispatching any remaining events
-	 * before cleanly returning.  Thread automatically gets started
-	 * when new events are dispatched
-	 */
-	public synchronized static void stopDispatchThread(){
-		mainThread.running = false;
-	}
-	
-	/**
-	 * Manually starts the dispatch thread.
-	 */
-	public synchronized static void startDispatchThread(){
-		if(mainThread.running){
-			return;
+	private void _addEventListener(String argKey, IEventListener argListener){
+		if (listeners.containsKey(argKey)) {
+			// return if we're already listening
+			if( _isEventListener( argKey, argListener)){
+				return;
+			}
+			listeners.get(argKey).addFirst(argListener);
 		}
-		mainThread.start();
+		else {
+			final LinkedList<IEventListener> stack = new LinkedList<IEventListener>();
+			stack.addFirst(argListener);
+			listeners.put(argKey, stack);
+		}
 	}
 	
-	public void stopGracefully(){
-		running = false;
+	private boolean _isEventListener( String argKey, IEventListener argListener) {
+		if(!listeners.containsKey( argKey)){
+			return false;
+		}
+		
+		LinkedList<IEventListener> stack = listeners.get( argKey);
+		return stack.contains( argListener);
+	}
+	
+	private LinkedList<IEventListener> _getListeners( String argKey) {
+		if (listeners.containsKey(argKey)) {
+			return listeners.get(argKey);
+		}
+		else {
+			LinkedList<IEventListener> stack = new LinkedList<IEventListener>();
+			listeners.put(argKey, stack);
+			return stack;
+		}
+	}
+
+	private boolean _removeEventListener( String argKey, IEventListener argListener) {
+		if (listeners.containsKey(argKey)) {
+			LinkedList<IEventListener> stack = listeners.get(argKey);
+			return stack.remove(argListener);
+		}
+		return false;
+	}
+
+	private void _dispatchEvent( MVCEvent argEvent) {
+		if (listeners.containsKey(argEvent.key)) {
+			eventQueue.add( argEvent);
+			if(!running){
+				if(getState() == State.NEW){
+					start();
+				}
+			}
+		}else{
+			if(monitor != null){
+				monitor.noListeners(argEvent);
+			}
+		}
 	}
 	
 	@Override
@@ -321,7 +336,12 @@ public class MVC extends Thread{
 			try{
 				it.next().eventReceived( argEvent);				
 			}catch(Exception e){
-				monitor.exceptionThrown(argEvent, e);
+				if(monitor != null){
+					monitor.exceptionThrown(argEvent, e);
+				}else{
+					// gotta say something
+					System.err.println(e);
+				}
 			}
 		}
 		if(monitor != null){

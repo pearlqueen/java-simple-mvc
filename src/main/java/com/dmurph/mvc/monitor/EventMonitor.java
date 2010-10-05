@@ -115,7 +115,7 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent argE) {
-				setEnabled(false);
+				setMonitorEnabled(false);
 			}
 		});
 	}
@@ -145,9 +145,9 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 		enableDisable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent argE) {
 				if(enabled){
-					setEnabled(false);
+					setMonitorEnabled(false);
 				}else{
-					setEnabled(true);
+					setMonitorEnabled(true);
 				}
 			}
 		});
@@ -155,16 +155,18 @@ public class EventMonitor extends JFrame implements IGlobalEventMonitor {
 	
 
 	/**
+	 * If the monitor is enabled
 	 * @return the enabled
 	 */
-	public boolean isEnabled() {
+	public boolean isMonitorEnabled() {
 		return enabled;
 	}
 
 	/**
+	 * Sets if the monitor should no longer listen for events
 	 * @param argEnabled the enabled to set
 	 */
-	public void setEnabled(boolean argEnabled) {
+	public void setMonitorEnabled(boolean argEnabled) {
 		enabled = argEnabled;
 		if(enabled){
 			enableDisable.setText("Disable");
