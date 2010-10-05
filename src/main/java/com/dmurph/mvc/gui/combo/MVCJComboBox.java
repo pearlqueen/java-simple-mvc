@@ -76,6 +76,33 @@ public class MVCJComboBox<E> extends JComboBox {
 		}
 	};
 	
+	/**
+	 * Constructs with no data, no filter, no 
+	 * {@link Comparator}, and style set to
+	 * {@link MVCJComboBoxStyle#ADD_NEW_TO_BEGINNING}.
+	 */
+	public MVCJComboBox() {
+		this(null, new IMVCJComboBoxFilter<E>() {
+			public boolean showItem(E argComponent) {
+				return true;
+			};
+		}, MVCJComboBoxStyle.SORT, null);
+	}
+	
+	/**
+	 * Constructs a combo box with the given style.  If you want
+	 * the {@link MVCJComboBoxStyle#SORT} style, then you'll want to specify
+	 * a comparator as well.
+	 * @param argData
+	 * @param argStyle
+	 */
+	public MVCJComboBox(MVCJComboBoxStyle argStyle) {
+		this(null, new IMVCJComboBoxFilter<E>() {
+			public boolean showItem(E argComponent) {
+				return true;
+			};
+		}, argStyle, null);
+	}
 	
 	/**
 	 * Constracts a dynamic combo box with the given data and
@@ -90,6 +117,13 @@ public class MVCJComboBox<E> extends JComboBox {
 		}, MVCJComboBoxStyle.SORT, argComparator);
 	}
 	
+	/**
+	 * Constructs a combo box with the given data and style.  If you want
+	 * the {@link MVCJComboBoxStyle#SORT} style, then you'll want to specify
+	 * a comparator as well.
+	 * @param argData
+	 * @param argStyle
+	 */
 	public MVCJComboBox(MVCArrayList<E> argData, MVCJComboBoxStyle argStyle) {
 		this(argData, new IMVCJComboBoxFilter<E>() {
 			public boolean showItem(E argComponent) {
@@ -99,19 +133,22 @@ public class MVCJComboBox<E> extends JComboBox {
 	}
 	
 	/**
-	 * Constructs a dynamic combo box with the given data and data interpreter.
+	 * Constructs a dynamic combo box with the given data, filter, and comparator.
+	 * The style will be {@link MVCJComboBoxStyle#SORT} by default.
 	 * @param argData
 	 * @param argFilter
+	 * @param argComparator
 	 */
 	public MVCJComboBox(MVCArrayList<E> argData, IMVCJComboBoxFilter<E> argFilter, Comparator<E> argComparator) {
 		this(argData, argFilter, MVCJComboBoxStyle.SORT, null);
 	}
 	
 	/**
-	 * Constructs with the given data, interpreter, and style.
+	 * 
 	 * @param argData
 	 * @param argFilter
 	 * @param argStyle
+	 * @param argComparator
 	 */
 	public MVCJComboBox(MVCArrayList<E> argData, IMVCJComboBoxFilter<E> argFilter, MVCJComboBoxStyle argStyle, Comparator<E> argComparator) {
 		data = argData;
@@ -160,7 +197,7 @@ public class MVCJComboBox<E> extends JComboBox {
 	/**
 	 * Sets the data of this combo box.  This causes the box
 	 * to refresh it's model
-	 * @param argData
+	 * @param argData can be null
 	 */
 	public void setData(MVCArrayList<E> argData){
 		synchronized (lock) {

@@ -60,11 +60,11 @@ public class MVC extends Thread{
 	private volatile boolean running = false;
 	private volatile JGoogleAnalyticsTracker tracker = null;
 	
-	private int threadCounter = 0;
+	private final int threadCount;
 	
 	private MVC(int argNum) {
 		super(mvcThreadGroup, "MVC Thread #"+argNum);
-		threadCounter = argNum;
+		threadCount = argNum;
 		mvcThreads.add(this);
 		monitor = new WarningMonitor();
 	}
@@ -144,7 +144,7 @@ public class MVC extends Thread{
 			MVC thread = (MVC) Thread.currentThread();
 			if(thread == mainThread){
 				MVC old = mainThread;
-				mainThread = new MVC(old.threadCounter+1);
+				mainThread = new MVC(old.threadCount+1);
 				
 				for(MVCEvent event : old.eventQueue){
 					mainThread.eventQueue.add(event);
