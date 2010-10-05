@@ -71,7 +71,9 @@ public class MVCJComboBox<E> extends JComboBox {
 				remove((E)argEvt.getOldValue());
 			}
 			else if(prop.equals(MVCArrayList.REMOVED_ALL)){
-				model.removeAllElements();
+				synchronized(lock){
+					model.removeAllElements();
+				}
 			}
 		}
 	};
@@ -347,6 +349,7 @@ public class MVCJComboBox<E> extends JComboBox {
 						throw new NullPointerException("DynamicJComboBox style is set to Alpha Sort, but the comparator is null.");
 					}
 					model.addElements(filtered);
+					model.sort(comparator);
 					break;
 				}
 				case ADD_NEW_TO_BEGINNING:{
