@@ -168,7 +168,9 @@ public class MVCJComboBox<E> extends JComboBox {
 				data.removePropertyChangeListener(plistener);
 			}
 			data = argData;
-			data.addPropertyChangeListener(plistener);
+			if(data != null){
+				data.addPropertyChangeListener(plistener);
+			}
 		}
 		refreshData();
 	}
@@ -234,6 +236,9 @@ public class MVCJComboBox<E> extends JComboBox {
 		synchronized (lock) {
 			// remove all elements
 			model.removeAllElements();
+			if(getData() == null){
+				return;
+			}
 			for(E e: getData()){
 				if(filter.showItem(e)){
 					model.addElement(e);
