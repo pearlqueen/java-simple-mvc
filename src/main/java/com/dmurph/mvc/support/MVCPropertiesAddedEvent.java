@@ -37,6 +37,7 @@ import java.util.Collection;
  * @author Daniel Murphy
  *
  */
+@SuppressWarnings("rawtypes") 
 public class MVCPropertiesAddedEvent extends PropertyChangeEvent {
 	private static final long serialVersionUID = 1L;
 	

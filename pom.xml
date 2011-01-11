@@ -135,7 +135,14 @@
 		<dependency>
 			<groupId>com.dmurph</groupId>
 			<artifactId>JGoogleAnalyticsTracker</artifactId>
-			<version>1.1.0</version>
+			<version>1.2.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.1</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

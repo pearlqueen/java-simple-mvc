@@ -32,6 +32,7 @@ import java.util.Collection;
  * @author Daniel Murphy
  *
  */
+@SuppressWarnings("rawtypes") 
 public class MVCPropertyChangeSupport extends PropertyChangeSupport {
 	private static final long serialVersionUID = 1L;
 

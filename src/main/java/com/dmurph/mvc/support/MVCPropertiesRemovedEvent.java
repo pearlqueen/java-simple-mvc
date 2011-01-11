@@ -36,6 +36,7 @@ import java.util.Collection;
  * will always return null.
  * @author Daniel Murphy
  */
+@SuppressWarnings("rawtypes") 
 public class MVCPropertiesRemovedEvent extends PropertyChangeEvent {
 	private static final long serialVersionUID = 1L;
 	

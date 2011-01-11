@@ -9,8 +9,7 @@ import com.dmurph.mvc.MVC;
 import com.dmurph.mvc.MVCEvent;
 
 /**
- * Default monitor for {@link MVC#getGlobalEventMonitor()}, warns the developer
- * through {@link System#err} that an event has no listeners.
+ * Displays warnings to std out.
  */
 public class WarningMonitor implements IGlobalEventMonitor {
 	
@@ -60,7 +59,7 @@ public class WarningMonitor implements IGlobalEventMonitor {
 			monitor.exceptionThrown(argEvent, argException);
 		}
 		// TODO locale
-		System.err.println("Exception thrown when dispatching event "+argEvent+":"+argException.toString());
+		System.err.println(I18n.getText("monitor.exception", argEvent.key)+" "+argException);
 		argException.printStackTrace(System.err);
 	}
 }

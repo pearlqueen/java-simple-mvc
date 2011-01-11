@@ -22,7 +22,7 @@
 /**
  * Created at Sep 21, 2010, 3:06:41 PM
  */
-package com.dmurph.mvc.gui;
+package com.dmurph.mvc.gui.combo;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox.KeySelectionManager;
@@ -94,8 +94,6 @@ public abstract class AbstractDynamicKeySelectionManager implements KeySelection
         	builtString = aKey+"";
         }
         lastMillis = nowMillis;
-
-        System.out.println("builtstring: "+builtString);
         
         for ( i = ++currentSelection, c = aModel.getSize() ; i < c ; i++ ) {
             Object elem = aModel.getElementAt(i);

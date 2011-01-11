@@ -9,7 +9,7 @@ import com.dmurph.mvc.MVCEvent;
 import com.dmurph.mvc.ObjectEvent;
 
 /**
- * Prints out all events before they dispatch.
+ * Prints out all events before they dispatch to std out.
  * @author Daniel Murphy
  */
 public class DebugMonitor implements IGlobalEventMonitor {

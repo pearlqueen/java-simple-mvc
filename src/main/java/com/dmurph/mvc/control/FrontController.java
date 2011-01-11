@@ -29,6 +29,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.IEventListener;
 import com.dmurph.mvc.MVC;
@@ -42,6 +45,8 @@ import com.dmurph.mvc.MVCEvent;
  * @author Daniel Murphy
  */
 public abstract class FrontController{
+	
+	private final static Logger log = LoggerFactory.getLogger(FrontController.class);
 	
 	// for getting the method
 	private final Class<?> paramTypes[] = { MVCEvent.class };
@@ -114,6 +119,7 @@ public abstract class FrontController{
 		try{
 			set.add(getClass().getMethod( argCommandMethod, paramTypes));
 		}catch(Exception e){
+			log.error(I18n.getText("frontController.findingMethod",argCommandMethod), e);
 			throw new RuntimeException(I18n.getText("frontController.findingMethod",argCommandMethod), e);
 		}
 		
@@ -141,8 +147,7 @@ public abstract class FrontController{
 						command = commandClass.newInstance();
 					} catch (Exception e){
 						// shouldn't happen
-						System.err.println(e.getLocalizedMessage());
-						e.printStackTrace();
+						log.error("Exception when creating new command instance", e);
 						continue;
 					}
 					
@@ -155,16 +160,13 @@ public abstract class FrontController{
 			if(methods != null){
 				for(Method m : methods){
 					try {
-							m.invoke(controller, argEvent);
+						m.invoke(controller, argEvent);
 					} catch ( IllegalArgumentException e) {
-						System.err.println(I18n.getText("frontController.invokingMethod", m.toString()));
-						e.printStackTrace();
+						log.error(I18n.getText("frontController.invokingMethod", m.toString()), e);
 					} catch ( IllegalAccessException e) {
-						System.err.println(I18n.getText("frontController.invokingMethod", m.toString()));
-						e.printStackTrace();
+						log.error(I18n.getText("frontController.invokingMethod", m.toString()), e);
 					} catch ( InvocationTargetException e) {
-						System.err.println(I18n.getText("frontController.invokingMethod", m.toString()));
-						e.printStackTrace();
+						log.error(I18n.getText("frontController.invokingMethod", m.toString()), e);
 					}
 				}
 			}

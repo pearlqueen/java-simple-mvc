@@ -139,6 +139,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		}
 		mp.type = argType;
 		mp.prop = argInitial;
+		mp.name = argKey;
 		addListener(mp.prop);
 		propertyMap.put(argKey, mp);
 	}
@@ -386,6 +387,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	private static class ModelProperty{
 		PropertyType type;
 		Object prop;
+		String name;
 
 		/**
 		 * @see java.lang.Object#equals(java.lang.Object)
@@ -408,6 +410,14 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 			if (type != other.type)
 				return false;
 			return true;
+		}
+		
+		/**
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return name+"-"+prop+"-"+type;
 		}
 	}
 }

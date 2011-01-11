@@ -67,7 +67,7 @@ public class MVCEvent implements Serializable{
 	
 	/**
 	 * Dispatches the event.  Events are dispatched globally, so make
-	 * sure you're key is unique!
+	 * sure your key is unique!
 	 */
 	public void dispatch(){
 		MVC.dispatchEvent( this);

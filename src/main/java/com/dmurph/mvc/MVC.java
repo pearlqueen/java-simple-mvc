@@ -30,7 +30,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.dmurph.mvc.monitor.EventMonitor;
+import com.dmurph.mvc.monitor.LoggingMonitor;
 import com.dmurph.mvc.monitor.WarningMonitor;
 import com.dmurph.mvc.tracking.ICustomTracker;
 import com.dmurph.mvc.tracking.ITrackable;
@@ -50,6 +54,8 @@ import com.dmurph.tracking.JGoogleAnalyticsTracker;
  */
 public class MVC extends Thread{
 	
+	private static final Logger log = LoggerFactory.getLogger(MVC.class);
+	
 	private static final ThreadGroup mvcThreadGroup = new ThreadGroup("MVC Thread Group");
 	private static final ArrayList<MVC> mvcThreads = new ArrayList<MVC>();
 	private volatile static MVC mainThread = new MVC(0);
@@ -66,7 +72,7 @@ public class MVC extends Thread{
 		super(mvcThreadGroup, "MVC Thread #"+argNum);
 		threadCount = argNum;
 		mvcThreads.add(this);
-		monitor = new WarningMonitor();
+		monitor = new LoggingMonitor();
 	}
 
 	public synchronized static void setTracker(JGoogleAnalyticsTracker tracker) {
@@ -143,6 +149,7 @@ public class MVC extends Thread{
 		if( Thread.currentThread() instanceof MVC){
 			MVC thread = (MVC) Thread.currentThread();
 			if(thread == mainThread){
+				log.debug("Splitting off...");
 				MVC old = mainThread;
 				mainThread = new MVC(old.threadCount+1);
 				
@@ -160,11 +167,14 @@ public class MVC extends Thread{
 				mainThread.monitor = old.monitor;
 				old.tracker = null;
 				
+				log.debug("Starting next MVC thread");
 				mainThread.start();
 			}else{
+				log.error("Can't split off when this isn't the main thread");
 				throw new IncorrectThreadException();
 			}
 		}else{
+			log.error("Can't split off, we're not in the MVC thread.");
 			throw new IllegalThreadException();
 		}
 	}
@@ -295,6 +305,7 @@ public class MVC extends Thread{
 	@Override
 	public void run(){
 		running = true;
+		log.info("MVC thread #"+threadCount+" starting up");
 		while(running){
 			if(eventQueue.isEmpty()){
 				try {
@@ -312,7 +323,13 @@ public class MVC extends Thread{
 		LinkedList<IEventListener> stack = listeners.get(argEvent.key);
 		
 		if(monitor != null){
-			monitor.beforeDispatch(argEvent);
+			try{
+				monitor.beforeDispatch(argEvent);
+			}
+			catch(Exception e){
+				// really? 
+				log.error("Exception caught from monitor", e);
+			}
 		}
 		if(argEvent instanceof ITrackable){
 			ITrackable event = (ITrackable) argEvent;
@@ -328,6 +345,8 @@ public class MVC extends Thread{
 									   event.getTrackingAction(),
 									   event.getTrackingLabel(),
 									   event.getTrackingValue());
+				}else{
+					log.warn("Event could not be tracked, as the tracker is null", event);
 				}
 			}
 		}
@@ -337,15 +356,27 @@ public class MVC extends Thread{
 				it.next().eventReceived( argEvent);				
 			}catch(Exception e){
 				if(monitor != null){
-					monitor.exceptionThrown(argEvent, e);
+					try{// why do I have to do this? monitors shouldn't throw exceptions
+						monitor.exceptionThrown(argEvent, e);
+					}catch(Exception e2){
+						log.error("Exception caught from event dispatch", e);
+						log.error("Exception caught from monitor", e2);
+						
+					}
 				}else{
-					// gotta say something
-					System.err.println(e);
+					log.error("Exception caught from event dispatch", e);
 				}
 			}
 		}
+		
 		if(monitor != null){
-			monitor.afterDispatch(argEvent);
+			try{ // do i really have to do this?
+				monitor.afterDispatch(argEvent);
+			}
+			catch(Exception e){
+				// really? 
+				log.error("Exception caught from monitor", e);
+			}
 		}
 	}
 }

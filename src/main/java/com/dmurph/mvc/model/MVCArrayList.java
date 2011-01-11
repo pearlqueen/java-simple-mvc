@@ -152,7 +152,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 	public synchronized boolean add(E e) {
 		boolean ret = super.add(e);
 		addListener(e);
-		propertyChangeSupport.fireIndexedPropertyChange(ADDED, size()-1, null, e);
+		propertyChangeSupport.firePropertyAddedEvent(ADDED, e, size()-1);
 		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;
@@ -163,7 +163,7 @@ public class MVCArrayList<E> extends ArrayList<E> implements IModel, ICloneable,
 	public synchronized void add(int index, E element) {
 		super.add(index, element);
 		addListener(element);
-		propertyChangeSupport.fireIndexedPropertyChange(ADDED, index, null, element);
+		propertyChangeSupport.firePropertyAddedEvent(ADDED, element, index);
 		firePropertyChange(SIZE, size() - 1, size());
 		boolean old = dirty;
 		dirty = true;

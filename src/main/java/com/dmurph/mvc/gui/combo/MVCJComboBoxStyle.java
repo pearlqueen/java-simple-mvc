@@ -31,7 +31,7 @@ package com.dmurph.mvc.gui.combo;
  */
 public enum MVCJComboBoxStyle{
 	/**
-	 * List is sorted alphabetically.
+	 * List is sorted.
 	 */
 	SORT,
 	/**
