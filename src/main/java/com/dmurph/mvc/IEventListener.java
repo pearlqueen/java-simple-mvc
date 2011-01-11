@@ -32,11 +32,13 @@ package com.dmurph.mvc;
 public interface IEventListener {
 	
 	/**
-	 * this is what gets called when an event is dispatched that
-	 * this object was listening for
+	 * Called when an event was dispatched that this object was
+	 * listening for.  Returns if this listener should still be
+	 * listening.  
 	 * 
 	 * @param argEvent
 	 *            event dispatched
+	 * @return if the listener should keep listening
 	 */
-	public void eventReceived(final MVCEvent argEvent);
+	public boolean eventReceived(final MVCEvent argEvent);
 }

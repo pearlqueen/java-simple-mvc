@@ -137,7 +137,7 @@ public abstract class FrontController{
 			controller = argController;
 		}
 		
-		public void eventReceived( MVCEvent argEvent) {
+		public boolean eventReceived( MVCEvent argEvent) {
 			HashSet<Class<? extends ICommand>> commands = controller.keyToCommands.get(argEvent.key);
 			
 			if(commands != null){
@@ -170,6 +170,7 @@ public abstract class FrontController{
 					}
 				}
 			}
+			return true;
 		}
 	}
 }

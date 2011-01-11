@@ -5,6 +5,7 @@ package com.dmurph.tests;
 
 import junit.framework.TestCase;
 
+import com.dmurph.mvc.MVC;
 import com.dmurph.mvc.MVCEvent;
 import com.dmurph.mvc.control.FrontController;
 import com.dmurph.mvc.control.ICommand;
@@ -26,12 +27,7 @@ public class CommandTest extends TestCase{
 		event.dispatch();
 		event.dispatch();
 		event.dispatch();
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		MVC.completeRemainingEvents(1000);
 	}
 	
 	public static class Controller extends FrontController{

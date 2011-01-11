@@ -51,6 +51,7 @@ public class SplitOffTest extends TestCase implements IEventListener{
 		(new MVCEvent("HI")).dispatch();
 		(new MVCEvent("HI")).dispatch();
 		(new MVCEvent("HI")).dispatch();
+		MVC.completeRemainingEvents(1000);
 	}
 	
 	
@@ -58,7 +59,7 @@ public class SplitOffTest extends TestCase implements IEventListener{
 	/**
 	 * @see com.dmurph.mvc.IEventListener#eventReceived(com.dmurph.mvc.MVCEvent)
 	 */
-	public void eventReceived(MVCEvent argEvent) {
+	public boolean eventReceived(MVCEvent argEvent) {
 		
 		System.out.println("Recieved thread: "+Thread.currentThread().getName()+", "+Thread.currentThread().getId());
 		if(threads.contains(Thread.currentThread())){
@@ -74,5 +75,6 @@ public class SplitOffTest extends TestCase implements IEventListener{
 		catch (IncorrectThreadException e) {
 			e.printStackTrace();
 		}
+		return true;
 	}
 }
