@@ -32,6 +32,7 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
 import com.dmurph.mvc.IModel;
@@ -161,7 +162,7 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 		if(propertyMap.containsKey(argKey)){
 			mp = propertyMap.get(argKey);
 			if(mp.type == PropertyType.FINAL){
-				throw new PropertyPermissionException("Property "+argKey+" is already registered with a property type of FINAL.  It cannot be changed.");
+				throw new PropertyPermissionException(I18n.getText("model.propertyFinal", argKey));
 			}
 		}else{
 			mp = new ModelProperty();
@@ -211,12 +212,12 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 					return old;
 				case READ_ONLY:
 					if(log.isWarnEnabled()){
-						log.warn("Attempt to set the property of the READ_ONLY property '{}' from '{}' to '{}'",
+						log.warn("Attempt to change the property of the READ_ONLY property '{}' from '{}' to '{}'",
 								new Object[]{argKey, mp.prop, argProperty});
 					}
 					return mp.prop;
 				case FINAL:
-					throw new PropertyPermissionException("Property "+argKey+" is already registered with a property type of FINAL.  It cannot be changed.");
+					throw new PropertyPermissionException(I18n.getText("model.propertyFinal", argKey));
 			}
 			return null;
 		}else{
