@@ -5,7 +5,6 @@ package com.dmurph.mvc.monitor;
 
 import com.dmurph.mvc.I18n;
 import com.dmurph.mvc.IGlobalEventMonitor;
-import com.dmurph.mvc.MVC;
 import com.dmurph.mvc.MVCEvent;
 
 /**

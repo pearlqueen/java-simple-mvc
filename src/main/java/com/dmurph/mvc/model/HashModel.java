@@ -1,4 +1,25 @@
 /**
+ * Copyright (c) 2010 Daniel Murphy
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+/**
  * Created on Jul 13, 2010, 3:41:56 PM
  */
 package com.dmurph.mvc.model;
@@ -7,6 +28,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.dmurph.mvc.ICloneable;
 import com.dmurph.mvc.IDirtyable;
@@ -36,6 +60,8 @@ import com.dmurph.mvc.support.RevertibleSupport.PropertyWrapper;
  */
 public class HashModel extends AbstractMVCSupport implements IDirtyable, ICloneable, IRevertible, IModel{
 	private static final long serialVersionUID = 2L;
+	
+	private static final Logger log = LoggerFactory.getLogger(HashModel.class);
 	
 	private final HashMap<String, ModelProperty> propertyMap = new HashMap<String, ModelProperty>();
 	private final RevertibleSupport revertibleSupport;
@@ -113,26 +139,29 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	}
 	
 	/**
-	 * Register a property, with initial value of null
+	 * Register a property, with initial value of null.
 	 * @param argKey
-	 * @param argType
+	 * @param argType the change permissions of the property.
 	 */
 	protected void registerProperty(String argKey, PropertyType argType){
 		registerProperty(argKey, argType, null);
 	}
 	
 	/**
-	 * Register a property with an initial value
+	 * Register a property with an initial value.  This is the only way to set
+	 * {@link PropertyType#READ_ONLY} properties.
 	 * @param argKey
-	 * @param argType
+	 * @param argType the change permissions of the property
 	 * @param argInitial
+	 * @throws PropertyPermissionException thrown if someone tries to set the property of a {@link PropertyType#FINAL}
+	 * 			property.
 	 */
 	protected synchronized void registerProperty(String argKey, PropertyType argType, Object argInitial){
 		ModelProperty mp;
 		if(propertyMap.containsKey(argKey)){
 			mp = propertyMap.get(argKey);
 			if(mp.type == PropertyType.FINAL){
-				return;
+				throw new PropertyPermissionException("Property "+argKey+" is already registered with a property type of FINAL.  It cannot be changed.");
 			}
 		}else{
 			mp = new ModelProperty();
@@ -160,26 +189,36 @@ public class HashModel extends AbstractMVCSupport implements IDirtyable, IClonea
 	 * {@link PropertyType#READ_WRITE}.  If the property isn't defined, it will be registered
 	 * and set with the property type of {@link PropertyType#READ_WRITE}.
 	 * @see #getPropertyType(String)
+	 * @throws PropertyPermissionException thrown if someone tries to set the property of a {@link PropertyType#FINAL}
+	 * 			property.
 	 */
 	public synchronized Object setProperty(String argKey, Object argProperty){
 		if(propertyMap.containsKey(argKey)){
 			ModelProperty mp = propertyMap.get(argKey);
-			if(mp.type == PropertyType.READ_WRITE){
-				if(mp.prop == argProperty){
-					return argProperty;
-				}
-				Object old = mp.prop;
-				removeListener(old);
-				mp.prop = argProperty;
-				addListener(mp.prop);
-				firePropertyChange(argKey, old, argProperty);
-				if(!argKey.equals(DIRTY)){
-					setProperty(DIRTY, true);
-				}
-				return old;
-			}else{
-				return mp.prop;
+			switch(mp.type){
+				case READ_WRITE:
+					if(mp.prop == argProperty){
+						return argProperty;
+					}
+					Object old = mp.prop;
+					removeListener(old);
+					mp.prop = argProperty;
+					addListener(mp.prop);
+					firePropertyChange(argKey, old, argProperty);
+					if(!argKey.equals(DIRTY)){
+						setProperty(DIRTY, true);
+					}
+					return old;
+				case READ_ONLY:
+					if(log.isWarnEnabled()){
+						log.warn("Attempt to set the property of the READ_ONLY property '{}' from '{}' to '{}'",
+								new Object[]{argKey, mp.prop, argProperty});
+					}
+					return mp.prop;
+				case FINAL:
+					throw new PropertyPermissionException("Property "+argKey+" is already registered with a property type of FINAL.  It cannot be changed.");
 			}
+			return null;
 		}else{
 			registerProperty(argKey, PropertyType.READ_WRITE, null);
 			return setProperty(argKey, argProperty);
