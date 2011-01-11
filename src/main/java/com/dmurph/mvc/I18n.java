@@ -31,11 +31,16 @@ import java.util.ResourceBundle;
 
 import javax.swing.KeyStroke;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Daniel Murphy
  *
  */
 public class I18n {
+	
+	private static final Logger log = LoggerFactory.getLogger(I18n.class);
 	
 	/**
 	 * Get the text for this key. The text has no special control characters in
@@ -55,7 +60,7 @@ public class I18n {
 		try {
 			value = resourceBundle.getString(key);
 		} catch (MissingResourceException e) {
-			System.err.println("Unable to find the translation for the key: " + key);
+			log.warn("Unable to find the translation for the key '{}'",key,e);
 			return key;
 		};
 		
@@ -227,8 +232,7 @@ public class I18n {
 			try {
 				bundle = ResourceBundle.getBundle("java-simple-mvc");
 			} catch (MissingResourceException mre2) {
-				System.out.println("Could not find locale file.");
-				mre2.printStackTrace();
+				log.error("Could not find locale file. Creating default bundle.", mre2);
 				bundle = new ResourceBundle() {
 					
 					@Override

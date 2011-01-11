@@ -35,7 +35,7 @@ import com.dmurph.mvc.ObjectEvent;
 /**
  * Default monitor, logs everything.  All events are 
  * logged at the debug level, events with no listeners are logged at the warning level, and events
- * that throw exceptions log at the error level.
+ * that throw exceptions log at the error level.  Events after dispatch are ignored.
  * @author Daniel
  *
  */
