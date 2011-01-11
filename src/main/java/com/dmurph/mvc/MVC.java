@@ -160,7 +160,6 @@ public class MVC extends Thread{
 			throw new RuntimeException("Key cannot be null");
 		}
 		
- 
 		synchronized (listeners) {
 			if (listeners.containsKey(argKey)) {
 				return new LinkedList<IEventListener>(listeners.get(argKey));
@@ -468,7 +467,6 @@ public class MVC extends Thread{
 							}catch(Exception e2){
 								log.error("Exception caught from event dispatch", e);
 								log.error("Exception caught from monitor", e2);
-								
 							}
 						}
 					}else{
