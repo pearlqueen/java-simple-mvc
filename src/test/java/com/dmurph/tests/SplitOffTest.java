@@ -38,32 +38,37 @@ import junit.framework.TestCase;
  * @author Daniel Murphy
  */
 public class SplitOffTest extends TestCase implements IEventListener{
-
-	MVCEvent event1;
-	MVCEvent event2;
 	
-	public void test(){
-		MVC.addEventListener("HI", this);
-		event1 = new MVCEvent("HI");
-		event2 = new MVCEvent("HI");
-		event1.dispatch();
-		event2.dispatch();
-		(new MVCEvent("HI")).dispatch();
-		(new MVCEvent("HI")).dispatch();
-		(new MVCEvent("HI")).dispatch();
+	public void testSplitOffAndIncorrectThread(){
+		MVC.addEventListener("SplitOff", this);
+		MVCEvent event = new MVCEvent("SplitOff");
+		int dispatches = 10;
+		for(int i=0; i<dispatches; i++) {
+			event.dispatch();
+		}
 		MVC.completeRemainingEvents(1000);
+	}
+	
+	public void testIllegalThread() {
+		boolean caught = false;
+		try {
+			MVC.splitOff();
+		} catch (IllegalThreadException e) {
+			caught = true;
+		} catch (IncorrectThreadException e) {
+			fail("Wrong exception thrown");
+		}
+		assertTrue(caught);
 	}
 	
 	
 	public HashSet<Thread> threads = new HashSet<Thread>();
-	/**
-	 * @see com.dmurph.mvc.IEventListener#eventReceived(com.dmurph.mvc.MVCEvent)
-	 */
+	
 	public boolean eventReceived(MVCEvent argEvent) {
 		
 		System.out.println("Recieved thread: "+Thread.currentThread().getName()+", "+Thread.currentThread().getId());
 		if(threads.contains(Thread.currentThread())){
-			fail("Thread was already encountered before");
+			fail("Thread was already encountered");
 		}
 		
 		threads.add(Thread.currentThread());
@@ -71,10 +76,22 @@ public class SplitOffTest extends TestCase implements IEventListener{
 			MVC.splitOff();
 		} catch (IllegalThreadException e) {
 			e.printStackTrace();
+			fail(e.getLocalizedMessage());
 		}
 		catch (IncorrectThreadException e) {
 			e.printStackTrace();
+			fail(e.getLocalizedMessage());
 		}
+		
+		boolean caught = false;
+		try {
+			MVC.splitOff();
+		} catch (IllegalThreadException e) {
+			fail("Dispatched from MVC thread but IllegalThreadException thrown");
+		} catch (IncorrectThreadException e) {
+			caught = true;
+		}
+		assertTrue(caught);
 		return true;
 	}
 }

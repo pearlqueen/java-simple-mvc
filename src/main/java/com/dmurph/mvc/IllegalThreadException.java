@@ -34,9 +34,6 @@ public class IllegalThreadException extends Exception {
 		super(I18n.getText("exception.illegalThread"));
 	}
 	
-	/**
-	 * @see java.lang.Throwable#getLocalizedMessage()
-	 */
 	@Override
 	public String getLocalizedMessage() {
 		return I18n.getText("exception.illegalThread");

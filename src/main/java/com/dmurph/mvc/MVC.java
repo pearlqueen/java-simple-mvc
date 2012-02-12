@@ -431,7 +431,7 @@ public class MVC extends Thread {
 		mvcThreads.remove(this);
 	}
 	
-	private synchronized void internalDispatchEvent(MVCEvent argEvent) {
+	private void internalDispatchEvent(MVCEvent argEvent) {
 		
 		if (monitor != null) {
 			synchronized (monitorLock) {

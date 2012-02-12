@@ -34,9 +34,6 @@ public class IncorrectThreadException extends Exception {
 		super(I18n.getText("exception.incorrectThread"));
 	}
 	
-	/**
-	 * @see java.lang.Throwable#getLocalizedMessage()
-	 */
 	@Override
 	public String getLocalizedMessage() {
 		return I18n.getText("exception.incorrectThread");
