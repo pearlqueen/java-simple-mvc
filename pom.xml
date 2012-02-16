@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dmurph.mvc</groupId>
 	<artifactId>java-simple-mvc</artifactId>
@@ -10,6 +11,11 @@
 		<url>http://code.google.com/p/java-simple-mvc/issues/list</url>
 	</issueManagement>
 	<packaging>jar</packaging>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 	<licenses>
 		<license>
 			<name>The MIT License</name>
@@ -84,10 +90,10 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.2-beta-5</version>
 				<configuration>
-		        	<descriptorRefs>
-		        		<descriptorRef>jar-with-dependencies</descriptorRef>
-		        	</descriptorRefs>
-		        </configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -158,11 +164,11 @@
 	<distributionManagement>
 		<repository>
 			<id>sonatype-nexus-staging</id>
-      		<name>Nexus Release Repository</name>
-      		<url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<name>Nexus Release Repository</name>
+			<url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 		<snapshotRepository>
-			<id>sonatype-nexus-snapshots1</id>
+			<id>sonatype-nexus-snapshots</id>
 			<name>Sonatype Nexus Snapshots</name>
 			<url>http://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
