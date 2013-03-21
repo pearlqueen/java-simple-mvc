@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import org.slf4j.Logger;
@@ -41,28 +42,28 @@ import com.dmurph.mvc.tracking.ITrackable;
 import com.dmurph.tracking.JGoogleAnalyticsTracker;
 
 /**
- * This stores all the listener information, dispatches events
- * to the corresponding listeners. To dispatch events use {@link MVCEvent#dispatch()}
- * .</br>
- * </br>
- * Also, look at {@link #splitOff()}. To set up Google analytics, call
- * {@link #setTracker(JGoogleAnalyticsTracker)},
- * or implement {@link ICustomTracker} in your events to be tracked, and then any event
- * that implements {@link ITrackable} will be tracked. If
- * {@link ITrackable#getTrackingCategory()} or {@link ITrackable#getTrackingAction()}
- * returns <code>null</code>, then it will be ignored.
+ * This stores all the listener information, dispatches events to the
+ * corresponding listeners. To dispatch events use {@link MVCEvent#dispatch()}
+ * .</br> </br> Also, look at {@link #splitOff()}. To set up Google analytics,
+ * call {@link #setTracker(JGoogleAnalyticsTracker)}, or implement
+ * {@link ICustomTracker} in your events to be tracked, and then any event that
+ * implements {@link ITrackable} will be tracked. If
+ * {@link ITrackable#getTrackingCategory()} or
+ * {@link ITrackable#getTrackingAction()} returns <code>null</code>, then it
+ * will be ignored.
  * 
  * @author Daniel Murphy
  */
 public class MVC extends Thread {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(MVC.class);
-	
-	private static final ThreadGroup mvcThreadGroup = new ThreadGroup("MVC Thread Group");
+
+	private static final ThreadGroup mvcThreadGroup = new ThreadGroup(
+			"MVC Thread Group");
 	private static final ArrayList<MVC> mvcThreads = new ArrayList<MVC>();
-	private static final HashMap<String, LinkedList<IEventListener>> listeners = new HashMap<String, LinkedList<IEventListener>>();
+	private static final HashMap<String, List<IEventListener>> listeners = new HashMap<String, List<IEventListener>>();
 	private static final Queue<MVCEvent> eventQueue = new LinkedList<MVCEvent>();
-	
+
 	private static final Object trackerLock = new Object();
 	private volatile static JGoogleAnalyticsTracker tracker = null;
 	private static final Object monitorLock = new Object();
@@ -70,51 +71,63 @@ public class MVC extends Thread {
 	private static final Object mainThreadLock = new Object();
 	private volatile static MVC mainThread;
 	private volatile static String currKey = null;
-	
+
 	private volatile boolean running = false;
 	private final int threadCount;
-	
+
+	private Iterator<IEventListener> currEventList;
+	private MVCEvent currEvent;
+
 	private MVC(int argNum) {
 		super(mvcThreadGroup, "MVC Thread #" + argNum);
 		threadCount = argNum;
 		mvcThreads.add(this);
 	}
-	
+
+	private MVC(int argNum, Iterator<IEventListener> currEventList,
+			MVCEvent currEvent) {
+		this(argNum);
+		this.currEvent = currEvent;
+		this.currEventList = currEventList;
+	}
+
 	public static void setTracker(JGoogleAnalyticsTracker argTracker) {
 		synchronized (trackerLock) {
 			tracker = argTracker;
 		}
 	}
-	
+
 	public static JGoogleAnalyticsTracker getTracker() {
 		return tracker;
 	}
-	
+
 	/**
-	 * Adds a listener for the given event key. If the listener is already listening
-	 * to that key, then nothing is done. On the rare occurrence that the key is being
-	 * dispatched at the same time by the mvc thread, this call will wait till all the
-	 * events
-	 * of that key are dispatched before adding and returning. If that happens and the
-	 * thead making this call is also the mvc thread,
-	 * (a listener for a key adds another listener for the same key), then a runtime
-	 * exception is thrown.
+	 * Adds a listener for the given event key. If the listener is already
+	 * listening to that key, then nothing is done. On the rare occurrence that
+	 * the key is being dispatched at the same time by the mvc thread, this call
+	 * will wait till all the events of that key are dispatched before adding
+	 * and returning. If that happens and the thead making this call is also the
+	 * mvc thread, (a listener for a key adds another listener for the same
+	 * key), then a runtime exception is thrown.
 	 * 
 	 * @param argKey
 	 * @param argListener
 	 */
-	public static void addEventListener(String argKey, IEventListener argListener) {
+	public static void addEventListener(String argKey,
+			IEventListener argListener) {
 		if (argKey == null) {
 			throw new RuntimeException("Key cannot be null");
 		}
-		
+
 		synchronized (listeners) {
 			synchronized (mainThreadLock) {
-				if (argKey.equals(currKey) && Thread.currentThread() == mainThread) {
-					throw new RuntimeException("Cannot add a listener to the same key that's being dispatched");
+				if (argKey.equals(currKey)
+						&& Thread.currentThread() == mainThread) {
+					throw new RuntimeException(
+							"Cannot add a listener to the same key that's being dispatched");
 				}
 			}
-			LinkedList<IEventListener> fifo;
+			List<IEventListener> fifo;
 			if (listeners.containsKey(argKey)) {
 				// return if we're already listening
 				if (listeners.get(argKey).contains(argListener)) {
@@ -122,15 +135,14 @@ public class MVC extends Thread {
 					return;
 				}
 				fifo = listeners.get(argKey);
-			}
-			else {
-				fifo = new LinkedList<IEventListener>();
+			} else {
+				fifo = new ArrayList<IEventListener>();
 				listeners.put(argKey, fifo);
 			}
 			fifo.add(argListener);
 		}
 	}
-	
+
 	/**
 	 * Checks to see if the listener is listening to the given key.
 	 * 
@@ -138,21 +150,22 @@ public class MVC extends Thread {
 	 * @param argListener
 	 * @return
 	 */
-	public static boolean isEventListener(String argKey, IEventListener argListener) {
+	public static boolean isEventListener(String argKey,
+			IEventListener argListener) {
 		if (argKey == null) {
 			throw new RuntimeException("Key cannot be null");
 		}
-		
+
 		synchronized (listeners) {
 			if (!listeners.containsKey(argKey)) {
 				return false;
 			}
-			
-			LinkedList<IEventListener> stack = listeners.get(argKey);
+
+			List<IEventListener> stack = listeners.get(argKey);
 			return stack.contains(argListener);
 		}
 	}
-	
+
 	/**
 	 * Gets a copy of the listeners for the given event key.
 	 * 
@@ -163,17 +176,16 @@ public class MVC extends Thread {
 		if (argKey == null) {
 			throw new RuntimeException("Key cannot be null");
 		}
-		
+
 		synchronized (listeners) {
 			if (listeners.containsKey(argKey)) {
 				return new LinkedList<IEventListener>(listeners.get(argKey));
-			}
-			else {
+			} else {
 				return new LinkedList<IEventListener>();
 			}
 		}
 	}
-	
+
 	/**
 	 * removes a listener from the given key.
 	 * 
@@ -182,32 +194,33 @@ public class MVC extends Thread {
 	 * @return true if the listener was removed, and false if it wasn't there to
 	 *         begin with
 	 */
-	public static boolean removeEventListener(String argKey, IEventListener argListener) {
+	public static boolean removeEventListener(String argKey,
+			IEventListener argListener) {
 		if (argKey == null) {
 			throw new RuntimeException("Key cannot be null");
 		}
-		
+
 		synchronized (listeners) {
 			synchronized (mainThreadLock) {
-				if (argKey.equals(currKey) && Thread.currentThread() == mainThread) {
+				if (argKey.equals(currKey)
+						&& Thread.currentThread() == mainThread) {
 					throw new RuntimeException(
 							"Cannot remove a listener to the same key that's being dispatched.  Return false instead.");
 				}
 			}
-			
+
 			if (listeners.containsKey(argKey)) {
-				LinkedList<IEventListener> stack = listeners.get(argKey);
+				List<IEventListener> stack = listeners.get(argKey);
 				return stack.remove(argListener);
-			}
-			else {
+			} else {
 				return false;
 			}
 		}
 	}
-	
+
 	/**
-	 * Adds an event to the dispatch queue for the MVC thread.
-	 * Used by {@link MVCEvent#dispatch()}.
+	 * Adds an event to the dispatch queue for the MVC thread. Used by
+	 * {@link MVCEvent#dispatch()}.
 	 * 
 	 * @param argEvent
 	 */
@@ -216,18 +229,17 @@ public class MVC extends Thread {
 		synchronized (listeners) {
 			hasListeners = listeners.containsKey(argEvent.key);
 		}
-		
+
 		if (hasListeners) {
 			synchronized (eventQueue) {
 				eventQueue.add(argEvent);
 				eventQueue.notify();
 			}
-			
+
 			if (!isDispatchThreadRunning()) {
 				startDispatchThread();
 			}
-		}
-		else {
+		} else {
 			synchronized (monitorLock) {
 				if (monitor != null) {
 					try {
@@ -239,12 +251,12 @@ public class MVC extends Thread {
 			}
 		}
 	}
-	
+
 	/**
-	 * Split off the current MVC thread, all queued events and future
-	 * event dispatches are handled by a new MVC thread, while this one
-	 * runs to completion. If the thread calling this is not the current
-	 * core MVC thread, then an exception is thrown
+	 * Split off the current MVC thread, all queued events and future event
+	 * dispatches are handled by a new MVC thread, while this one runs to
+	 * completion. If the thread calling this is not the current core MVC
+	 * thread, then an exception is thrown
 	 * 
 	 * @throws IllegalThreadException
 	 *             if the thread calling this is not an MVC thread
@@ -252,31 +264,33 @@ public class MVC extends Thread {
 	 *             if the MVC thread calling this is not the main thread, e.g.
 	 *             it has already split off.
 	 */
-	public static void splitOff() throws IllegalThreadException, IncorrectThreadException {
+	public static void splitOff() throws IllegalThreadException,
+			IncorrectThreadException {
 		if (Thread.currentThread() instanceof MVC) {
 			MVC thread = (MVC) Thread.currentThread();
 			synchronized (mainThreadLock) {
 				if (thread == mainThread) {
 					log.debug("Splitting off...");
-					
+
 					MVC old = mainThread;
 					old.running = false;
-					mainThread = new MVC(old.threadCount + 1);
+					mainThread = new MVC(old.threadCount + 1,
+							old.currEventList, old.currEvent);
+					old.currEvent = null;
+					old.currEventList = null;
 					log.debug("Starting next MVC thread");
 					mainThread.start();
-				}
-				else {
+				} else {
 					log.error("Can't split off when this isn't the main thread");
 					throw new IncorrectThreadException();
 				}
 			}
-		}
-		else {
+		} else {
 			log.error("Can't split off, we're not in the MVC thread.");
 			throw new IllegalThreadException();
 		}
 	}
-	
+
 	/**
 	 * Wait for all remaining events to dispatch
 	 * 
@@ -284,19 +298,19 @@ public class MVC extends Thread {
 	 *            The maximum number of milliseconds to wait.
 	 */
 	public static void completeRemainingEvents(long timeoutMillis) {
-		
+
 		boolean fifoEmpty = false;
-		
+
 		long absTimeout = System.currentTimeMillis() + timeoutMillis;
 		while (System.currentTimeMillis() < absTimeout) {
 			synchronized (eventQueue) {
 				fifoEmpty = (eventQueue.size() == 0);
 			}
-			
+
 			if (fifoEmpty) {
 				break;
 			}
-			
+
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -304,11 +318,11 @@ public class MVC extends Thread {
 			}
 		}
 	}
-	
+
 	/**
-	 * Stops the dispatch thread, dispatching any remaining events
-	 * before cleanly returning. Thread automatically gets started
-	 * when new events are dispatched
+	 * Stops the dispatch thread, dispatching any remaining events before
+	 * cleanly returning. Thread automatically gets started when new events are
+	 * dispatched
 	 */
 	public static void stopDispatchThread(long argTimeoutMillis) {
 		synchronized (mainThreadLock) {
@@ -319,19 +333,21 @@ public class MVC extends Thread {
 			if ((mainThread != null) && (argTimeoutMillis > 0)) {
 				try {
 					mainThread.join(argTimeoutMillis);
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException e) {
+				}
 				mainThread = null;
 			}
 		}
-		
+
 	}
-	
+
 	public static boolean isDispatchThreadRunning() {
 		synchronized (mainThreadLock) {
-			return mainThread != null && (mainThread.running || mainThread.getState() == State.RUNNABLE);
+			return mainThread != null
+					&& (mainThread.running || mainThread.getState() == State.RUNNABLE);
 		}
 	}
-	
+
 	/**
 	 * Manually starts the dispatch thread.
 	 */
@@ -347,10 +363,10 @@ public class MVC extends Thread {
 			}
 		}
 	}
-	
+
 	/**
-	 * Sets the global event monitor, which is called before and after each event is
-	 * dispatched.
+	 * Sets the global event monitor, which is called before and after each
+	 * event is dispatched.
 	 * 
 	 * @param argMonitor
 	 * @see IGlobalEventMonitor
@@ -360,7 +376,7 @@ public class MVC extends Thread {
 			monitor = argMonitor;
 		}
 	}
-	
+
 	/**
 	 * Gets the global event monitor. Default is {@link WarningMonitor}.
 	 * 
@@ -372,15 +388,15 @@ public class MVC extends Thread {
 			return monitor;
 		}
 	}
-	
+
 	private volatile static EventMonitor guiMonitor = null;
-	
+
 	/**
-	 * Convenience method to construct and show an {@link EventMonitor}. To
-	 * have more control on how the {@link EventMonitor} is configured,
-	 * you can just create it yourself and use
-	 * {@link #setGlobalEventMonitor(IGlobalEventMonitor)} to have it be the global event
-	 * monitor.
+	 * Convenience method to construct and show an {@link EventMonitor}. To have
+	 * more control on how the {@link EventMonitor} is configured, you can just
+	 * create it yourself and use
+	 * {@link #setGlobalEventMonitor(IGlobalEventMonitor)} to have it be the
+	 * global event monitor.
 	 * 
 	 * @return the {@link EventMonitor}.
 	 */
@@ -394,7 +410,7 @@ public class MVC extends Thread {
 		guiMonitor.setVisible(true);
 		return guiMonitor;
 	}
-	
+
 	/**
 	 * Hides the event monitor, if you had used {@link #showEventMonitor()}.
 	 */
@@ -403,98 +419,122 @@ public class MVC extends Thread {
 			guiMonitor.setVisible(false);
 		}
 	}
-	
+
+	public static boolean isMainMVCThread() {
+		MVC thread = (MVC) Thread.currentThread();
+		return thread == mainThread;
+	}
+
 	@Override
 	public void run() {
 		running = true;
 		log.info("MVC thread #" + threadCount + " starting up");
 		while (running) {
-			try {
-				MVCEvent event = null;
-				synchronized (eventQueue) {
-					if (eventQueue.isEmpty()) {
-						eventQueue.wait();
+			IEventListener listener;
+			if (currEvent != null && currEventList != null
+					&& currEventList.hasNext() && currEvent.isPropagating()) {
+				synchronized (listeners) {
+					listener = currEventList.next();
+				}
+				tryPreMonitor(currEvent);
+				tryTrackEvent(currEvent);
+				try {
+					if (!listener.eventReceived(currEvent)) {
+						if (isMainMVCThread()) {
+							synchronized (listeners) {
+								currEventList.remove();
+							}
+						} else {
+							log.error("Cannot remove the listener " + listener
+									+ ", as we've been split off");
+						}
 					}
-					
-					if (!eventQueue.isEmpty()) {
-						event = eventQueue.poll();
+				} catch (Exception e) {
+					synchronized (monitorLock) {
+						if (monitor != null) {
+							try {// why do I have to do this? monitors shouldn't
+									// throw
+									// exceptions
+								monitor.exceptionThrown(currEvent, e);
+							} catch (Exception e2) {
+								log.error(
+										"Exception caught from event dispatch",
+										e);
+								log.error("Exception caught from monitor", e2);
+							}
+						} else {
+							log.error("Exception caught from event dispatch", e);
+						}
 					}
 				}
-				
-				if (event != null) {
-					internalDispatchEvent(event);
+				tryPostMonitor(currEvent);
+			} else {
+				// grab next event
+				try {
+					synchronized (eventQueue) {
+						if (eventQueue.isEmpty()) {
+							eventQueue.wait();
+						}
+
+						if (!eventQueue.isEmpty()) {
+							currEvent = eventQueue.poll();
+						}
+					}
+
+					if (currEvent != null) {
+						synchronized (listeners) {
+							currEventList = listeners.get(currEvent.key)
+									.iterator();
+						}
+					}
+				} catch (Exception e) {
+					log.error("Caught exception in dispatch thread", e);
 				}
-			} catch (Exception e) {
-				log.error("Caught exception in dispatch thread", e);
 			}
+
 		}
 		mvcThreads.remove(this);
 	}
-	
-	private void internalDispatchEvent(MVCEvent argEvent) {
-		
+
+	private void tryTrackEvent(MVCEvent argEvent) {
+		if (argEvent instanceof ITrackable) {
+			ITrackable event = (ITrackable) argEvent;
+			if (event.getTrackingCategory() != null
+					&& event.getTrackingAction() != null) {
+				if (event instanceof ICustomTracker) {
+					((ICustomTracker) event).getCustomTracker().trackEvent(
+							event.getTrackingCategory(),
+							event.getTrackingAction(),
+							event.getTrackingLabel(), event.getTrackingValue());
+				} else if (tracker != null) {
+					synchronized (trackerLock) {
+						tracker.trackEvent(event.getTrackingCategory(),
+								event.getTrackingAction(),
+								event.getTrackingLabel(),
+								event.getTrackingValue());
+					}
+				} else {
+					log.warn(
+							"Event could not be tracked, as the tracker is null",
+							event);
+				}
+			}
+		}
+	}
+
+	private void tryPreMonitor(MVCEvent argEvent) {
 		if (monitor != null) {
 			synchronized (monitorLock) {
 				try {
 					monitor.beforeDispatch(argEvent);
 				} catch (Exception e) {
-					e.printStackTrace();
 					log.error("Exception caught from monitor", e);
 				}
 			}
 		}
-		
-		if (argEvent instanceof ITrackable) {
-			ITrackable event = (ITrackable) argEvent;
-			if (event.getTrackingCategory() != null && event.getTrackingAction() != null) {
-				if (event instanceof ICustomTracker) {
-					((ICustomTracker) event).getCustomTracker().trackEvent(event.getTrackingCategory(),
-							event.getTrackingAction(), event.getTrackingLabel(), event.getTrackingValue());
-				}
-				else if (tracker != null) {
-					synchronized (trackerLock) {
-						tracker.trackEvent(event.getTrackingCategory(), event.getTrackingAction(),
-								event.getTrackingLabel(), event.getTrackingValue());
-					}
-				}
-				else {
-					log.warn("Event could not be tracked, as the tracker is null", event);
-				}
-			}
-		}
-		
-		currKey = argEvent.key;
-		LinkedList<IEventListener> stack;
-		synchronized (listeners) {
-			stack = listeners.get(argEvent.key);
-			
-			Iterator<IEventListener> it = stack.iterator();
-			while (it.hasNext() && argEvent.isPropagating()) {
-				try {
-					if (!it.next().eventReceived(argEvent)) {
-						it.remove();
-					}
-				} catch (Exception e) {
-					synchronized (monitorLock) {
-						if (monitor != null) {
-							try {// why do I have to do this? monitors shouldn't throw
-									// exceptions
-								monitor.exceptionThrown(argEvent, e);
-							} catch (Exception e2) {
-								log.error("Exception caught from event dispatch", e);
-								log.error("Exception caught from monitor", e2);
-								
-							}
-						}
-						else {
-							log.error("Exception caught from event dispatch", e);
-						}
-					}
-				}
-			}
-			currKey = null;
-		}
-		
+	}
+
+	private void tryPostMonitor(MVCEvent argEvent) {
 		synchronized (monitorLock) {
 			if (monitor != null) {
 				try {
