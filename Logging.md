@@ -1,0 +1,1 @@
+Logging is done with [slf4j](http://www.slf4j.com/), which works with most popular logging frameworks.  Visit the website to learn more about how to use it, it's very simple.
